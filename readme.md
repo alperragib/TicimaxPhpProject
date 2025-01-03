@@ -18,3 +18,25 @@ Ticimax admin paneline girdikten sonra. Aşağıdaki adımları izleyerek "Ws Ye
 Açılan sayfadan "Yeni Ekle" butonuna tıklayın.
 
 Gerekli formu doldurun. Oluşan keyi sonradan da görebilirsiniz.
+
+## Örnek Kod
+
+```php
+<?php
+
+	use Hasokeyk\Ticimax\Ticimax;
+
+	require_once (__DIR__)."/vendor/autoload.php";
+
+	$domain = "https://xxxxyyyyzzzz.com"; //TİCİMAX WEBSİTE ADI
+	$key    = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"; //OLUŞTURDUĞUNUZ KEY
+
+	$ticimax = new Ticimax($domain, $key);
+
+	$ticimax_categories = $ticimax->categories();
+
+	$get_categories = $ticimax_categories->get_categories();
+	print_r($get_categories);
+```
+
+daha fazla örnek kod için "[example](https://github.com/Hasokeyk/ticimax-php/tree/main/example])" klasörüne bakınız
