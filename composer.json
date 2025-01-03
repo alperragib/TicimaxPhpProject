@@ -14,7 +14,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Ticimax\\": "src"
+      "Hasokeyk\\Ticimax\\": "src"
     }
   }
 }

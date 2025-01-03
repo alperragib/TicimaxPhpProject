@@ -1,6 +1,7 @@
 <?php
 
 	use Hasokeyk\Ticimax\Ticimax;
+	use Hasokeyk\Ticimax\Categories\TicimaxCategoryModel;
 
 	require_once (__DIR__)."/vendor/autoload.php";
 
@@ -12,7 +13,7 @@
 	$ticimax_categories = $ticimax->categories();
 
 	//ÖNCE KATEGORİ MODELİ OLUŞTURUYORUZ
-	$ticimax_category = new \Hasokeyk\Ticimax\Categories\TicimaxCategoryModel();
+	$ticimax_category = new TicimaxCategoryModel();
 	$ticimax_category->setCategoryId(0); //0 YOLLANIRSA YENİ KATEGORİ OLUŞTURUR EĞER O ID DE KATEGORİ VARSA GÜNCELLER
 	$ticimax_category->setCategoryName("Kahve");
 	$ticimax_category->setCategoryDescription("Kahve kategorisi");
@@ -26,5 +27,5 @@
 	$ticimax_category->setCategorySeoPermalink("kahve-sayfasi");
 	//ÖNCE KATEGORİ MODELİ OLUŞTURUYORUZ
 
-	$get_categories = $ticimax_categories->create_categories($ticimax_category);
+	$get_categories = $ticimax_categories->create_category($ticimax_category);
 	print_r($get_categories);
