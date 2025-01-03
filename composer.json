@@ -1,0 +1,20 @@
+{
+  "name": "hasokeyk/ticimax-php",
+  "description": "Ticimax apisi ile entegrasyon yönetimi",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Hasan",
+      "email": "hasanhasokeyk@hotmail.com"
+    }
+  ],
+  "require": {
+    "ext-soap": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Ticimax\\": "src"
+    }
+  }
+}
