@@ -14,7 +14,7 @@
 
 	//ÖNCE KATEGORİ MODELİ OLUŞTURUYORUZ
 	$ticimax_category = new TicimaxCategoryModel();
-	$ticimax_category->setCategoryId(0); //0 YOLLANIRSA YENİ KATEGORİ OLUŞTURUR
+	$ticimax_category->setCategoryId(9999); //ID DE KATEGORİ VARSA GÜNCELLER
 	$ticimax_category->setCategoryName("Kahve");
 	$ticimax_category->setCategoryDescription("Kahve kategorisi");
 	$ticimax_category->setCategoryParentId(0);
@@ -27,5 +27,5 @@
 	$ticimax_category->setCategorySeoPermalink("kahve-sayfasi");
 	//ÖNCE KATEGORİ MODELİ OLUŞTURUYORUZ
 
-	$get_categories = $ticimax_categories->create_category($ticimax_category);
+	$get_categories = $ticimax_categories->update_category($ticimax_category);
 	print_r($get_categories);

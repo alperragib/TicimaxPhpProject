@@ -170,7 +170,7 @@
 			$this->category_sort = $category_sort;
 		}
 
-		public function to_array(){
+		public function toArray(){
 			return [
 				'ID'                 => $this->category_id,
 				'PID'                => $this->category_parent_id,
