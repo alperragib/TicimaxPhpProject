@@ -24,14 +24,14 @@
 						'kategoriID' => 0
 					]
 				]);
-				return [
+				return (object)[
 					'status'   => 'success',
-					'data'     => $response->SelectKategoriResult->Kategori ?? null,
+					'data'     => isset($response->SelectKategoriResult->Kategori->ID) ? [$response->SelectKategoriResult->Kategori] : ($response->SelectKategoriResult->Kategori ?? null), //EĞER TEK VERİ VARSA DİREKT ERİŞİM VERİYOR DÖNGÜYE ALINCA HATA VERMEMESİ İÇİN TEK VERİ VARSA DİZİ İÇİNE OTOMATİK ALIYORUZ
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
-				return [
+				return (object)[
 					'status'   => 'danger',
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
@@ -49,14 +49,14 @@
 						'kategoriID' => $category_id
 					]
 				]);
-				return [
+				return (object)[
 					'status'   => 'success',
 					'data'     => $response->SelectKategoriResult->Kategori ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
-				return [
+				return (object)[
 					'status'   => 'danger',
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
@@ -71,7 +71,7 @@
 				$ticimax_category = $ticimax_category_model->to_array();
 
 				if(isset($ticimax_category['ID']) and $ticimax_category['ID'] != 0){
-					return [
+					return (object)[
 						'status'  => 'danger',
 						'message' => 'Yeni kategori oluşturmak için kategori ID 0 girilmeli'
 					];
@@ -85,14 +85,14 @@
 						'kategori' => $ticimax_category
 					]
 				]);
-				return [
+				return (object)[
 					'status'   => 'success',
 					'data'     => $response->SaveKategoriResult ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
-				return [
+				return (object)[
 					'status'   => 'danger',
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
@@ -106,7 +106,7 @@
 			try{
 				$ticimax_category = $ticimax_category_model->to_array();
 				if(isset($ticimax_category['ID']) and $ticimax_category['ID'] == 0){
-					return [
+					return (object)[
 						'status'  => 'danger',
 						'message' => 'Kategori güncellerken kategori ID 0 girilemez '
 					];
@@ -118,14 +118,14 @@
 						'kategori' => $ticimax_category
 					]
 				]);
-				return [
+				return (object)[
 					'status'   => 'success',
 					'data'     => $response->SaveKategoriResult ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
-				return [
+				return (object)[
 					'status'   => 'danger',
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
@@ -143,14 +143,14 @@
 						'KategoriID' => $category_id
 					]
 				]);
-				return [
+				return (object)[
 					'status'   => 'success',
 					'data'     => $response->DeleteKategoriResult ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
-				return [
+				return (object)[
 					'status'   => 'danger',
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),

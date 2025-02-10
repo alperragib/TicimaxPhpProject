@@ -1,3 +1,5 @@
+# !!!!KÜTÜPHANE HALA GELİŞTİRİLMEKTE OLDUĞU İÇİN BAZI KODLAR DEĞİŞEBİLİR
+
 ## Ticimax Php
 Bu kütüphane ile ticimax entegrasyonu yapabilirsiniz.
 

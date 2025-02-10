@@ -8,14 +8,18 @@
 			$missing_params = [];
 			foreach($request_params as $method_name){
 				$new_method_name = 'get_'.$method_name;
-				if (!method_exists($this_class, $new_method_name) || empty($this_class->$new_method_name())) {
-					$missing_params[] = $new_method_name;
+				if (!method_exists($this_class, $new_method_name)) {
+					if(is_array($this_class) and count($this_class) == 1){
+						$missing_params[] = $new_method_name;
+					}else if(strlen($this_class->$new_method_name()) == 0){
+						$missing_params[] = $new_method_name;
+					}
 				}
 			}
 
 			if(!empty($missing_params)){
 				$missing_params_string = implode(', ', $missing_params);
-				trigger_error("This information is mandatory. Please set this information.: ".$missing_params_string, E_USER_WARNING);
+				trigger_error("Bu parametreler zorunludur. Lütfen set ediniz : ".$missing_params_string, E_USER_WARNING);
 				return false;
 			}
 

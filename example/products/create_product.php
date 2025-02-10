@@ -24,7 +24,7 @@
 	$ticimax_product_variation = new TicimaxProductVariationModel();
 	$ticimax_product_variation->setProductVariationIsActive(1);
 	$ticimax_product_variation->setProductVariationMoneyUnitId(1);
-	$ticimax_product_variation->setProductVariationSalePrice(1000);
+	$ticimax_product_variation->set_product_variation_sale_price(1000);
 
 	$ticimax_product_card->setProductVariations($ticimax_product_variation);
 

@@ -2,6 +2,8 @@
 
 	namespace Hasokeyk\Ticimax\Products;
 
+	use Hasokeyk\Ticimax\TicimaxHelpers;
+
 	class TicimaxProductCardModel{
 
 		public $product_id;
@@ -101,202 +103,170 @@
 			'YeniUrunGuncelle'                          => false,
 		];
 
-		private $requiredFields = [
-			'setProductId'         => 'product_id',
-			'setProductName'       => 'product_name',
-			'setProductIsActive'   => 'product_is_active',
-			'setProductCategoryId' => 'product_category_id',
-			'setProductBrandId'    => 'product_brand_id',
-			'setProductVariations' => 'product_variations',
+		private $request_params = [
+			'product_name',
+			'product_is_active',
+			'product_category_id',
+			'product_brand_id',
+			'product_variations',
 		];
-		private $calledGetters  = [];
 
-		private function checkRequiredFields(){
-			$missingFields = [];
-			foreach($this->requiredFields as $method_name => $variation_name){
-				if(!isset($this->$variation_name)){
-					$missingFields[] = $method_name;
-				}
-			}
+		private $ticimax_helper;
 
-			if(!empty($missingFields)){
-				$missingFieldsString = implode(', ', $missingFields);
-				trigger_error("The following getter methods were not called (and are required): ".$missingFieldsString, E_USER_WARNING);
-				return false;
-			}
-
-			return true;
+		function __construct(){
+			$this->ticimax_helper = new TicimaxHelpers();
 		}
 
-		public function getProductHighlighting(){
-			return $this->product_highlighting;
-		}
-
-		public function setProductHighlighting($product_highlighting){
-			$this->product_highlighting = $product_highlighting;
-			return $this;
-		}
-
-		public function getProductId(){
+		public function get_product_id(){
 			return $this->product_id;
 		}
 
-		public function setProductId($product_id){
+		public function set_product_id($product_id): void{
 			$this->product_id = $product_id;
-			return $this;
 		}
 
-		public function getProductName(){
+		public function get_product_name(){
 			return $this->product_name;
 		}
 
-		public function setProductName($product_name){
+		public function set_product_name($product_name): void{
 			$this->product_name              = $product_name;
 			$this->ukAyar['UrunAdiGuncelle'] = true;
-			return $this;
 		}
 
-		public function getProductIsActive(){
-			return $this->product_is_active;
-		}
-
-		public function setProductIsActive($product_is_active){
-			$this->product_is_active       = $product_is_active;
-			$this->ukAyar['AktifGuncelle'] = true;
-			return $this;
-		}
-
-		public function getProductCategoryId(){
-			return $this->product_category_id;
-		}
-
-		public function setProductCategoryId($product_category_id){
-			$this->product_category_id     = $product_category_id;
-			$this->ukAyar['AnaKategoriId'] = $product_category_id;
-			return $this;
-		}
-
-		public function getProductCategoriesIds(): array{
-			return $this->product_categories_ids;
-		}
-
-		public function setProductCategoriesIds(array $product_categories_ids): TicimaxProductCardModel{
-			$this->product_categories_ids = $product_categories_ids;
-			return $this;
-		}
-
-		public function getProductShowList(){
-			return $this->product_show_list;
-		}
-
-		public function setProductShowList($product_show_list){
-			$this->product_show_list               = $product_show_list;
-			$this->ukAyar['ListedeGosterGuncelle'] = true;
-			return $this;
-		}
-
-		public function getProductBrandId(){
-			return $this->product_brand_id;
-		}
-
-		public function setProductBrandId($product_brand_id){
-			$this->product_brand_id        = $product_brand_id;
-			$this->ukAyar['MarkaGuncelle'] = true;
-			return $this;
-		}
-
-		public function getProductSupplierId(){
-			return $this->product_supplier_id;
-		}
-
-		public function setProductSupplierId($product_supplier_id){
-			$this->product_supplier_id         = $product_supplier_id;
-			$this->ukAyar['TedarikciGuncelle'] = true;
-			return $this;
-		}
-
-		public function getProductSupplierCode(){
-			return $this->product_supplier_code;
-		}
-
-		public function setProductSupplierCode($product_supplier_code){
-			$this->product_supplier_code       = $product_supplier_code;
-			$this->ukAyar['TedarikciGuncelle'] = true;
-			return $this;
-		}
-
-		public function getProductVariations(){
-			return $this->product_variations;
-		}
-
-		public function setProductVariations($product_variations){
-			$this->product_variations = $product_variations;
-			return $this;
-		}
-
-		public function getProductImages(){
-			return $this->product_images;
-		}
-
-		public function setProductImages($product_images){
-			$this->product_images              = $product_images;
-			$this->ukAyar['UrunResimGuncelle'] = true;
-			return $this;
-		}
-
-		public function getProductUnitName(){
-			return $this->product_unit_name;
-		}
-
-		public function setProductUnitName($product_unit_name){
-			$this->product_unit_name             = $product_unit_name;
-			$this->ukAyar['SatisBirimiGuncelle'] = true;
-			return $this;
-		}
-
-		public function getProductDesc(){
+		public function get_product_description(){
 			return $this->product_description;
 		}
 
-		public function setProductDesc($product_description){
+		public function set_product_description($product_description): void{
 			$this->product_description        = $product_description;
 			$this->ukAyar['AciklamaGuncelle'] = true;
-			return $this;
 		}
 
-		public function productToArray(){
+		public function get_product_is_active(){
+			return $this->product_is_active;
+		}
 
-			$check = $this->checkRequiredFields();
+		public function set_product_is_active($product_is_active): void{
+			$this->product_is_active       = $product_is_active;
+			$this->ukAyar['AktifGuncelle'] = true;
+		}
+
+		public function get_product_category_id(){
+			return $this->product_category_id;
+		}
+
+		public function set_product_category_id($product_category_id): void{
+			$this->product_category_id        = $product_category_id;
+			$this->ukAyar['KategoriGuncelle'] = true;
+		}
+
+		public function get_product_categories_ids(): array{
+			return $this->product_categories_ids;
+		}
+
+		public function set_product_categories_ids(array $product_categories_ids): void{
+			$this->product_categories_ids = $product_categories_ids;
+		}
+
+		public function get_product_show_list(){
+			return $this->product_show_list;
+		}
+
+		public function set_product_show_list($product_show_list): void{
+			$this->product_show_list               = $product_show_list;
+			$this->ukAyar['ListedeGosterGuncelle'] = true;
+		}
+
+		public function get_product_brand_id(){
+			return $this->product_brand_id;
+		}
+
+		public function set_product_brand_id($product_brand_id): void{
+			$this->product_brand_id        = $product_brand_id;
+			$this->ukAyar['MarkaGuncelle'] = true;
+		}
+
+		public function get_product_supplier_id(){
+			return $this->product_supplier_id;
+		}
+
+		public function set_product_supplier_id($product_supplier_id): void{
+			$this->product_supplier_id         = $product_supplier_id;
+			$this->ukAyar['TedarikciGuncelle'] = true;
+		}
+
+		public function get_product_supplier_code(){
+			return $this->product_supplier_code;
+		}
+
+		public function set_product_supplier_code($product_supplier_code): void{
+			$this->product_supplier_code                = $product_supplier_code;
+			$this->ukAyar['TedarikciKodu2GoreGuncelle'] = true;
+		}
+
+		public function get_product_variations(){
+			return $this->product_variations;
+		}
+
+		public function set_product_variations($product_variations): void{
+			$this->product_variations = $product_variations;
+		}
+
+		public function get_product_highlighting(){
+			return $this->product_highlighting;
+		}
+
+		public function set_product_highlighting($product_highlighting): void{
+			$this->product_highlighting     = $product_highlighting;
+			$this->ukAyar['VitrinGuncelle'] = true;
+		}
+
+		public function get_product_images(){
+			return $this->product_images;
+		}
+
+		public function set_product_images($product_images): void{
+			$this->product_images              = $product_images;
+			$this->ukAyar['UrunResimGuncelle'] = true;
+		}
+
+		public function get_product_unit_name(){
+			return $this->product_unit_name;
+		}
+
+		public function set_product_unit_name($product_unit_name): void{
+			$this->product_unit_name             = $product_unit_name;
+			$this->ukAyar['SatisBirimiGuncelle'] = true;
+		}
+
+		public function product_to_array(){
+
+			$check = $this->ticimax_helper->check_request_params($this, $this->request_params);
 			if(!$check){
 				return false;
 			}
 
-			$variation_check = $this->getProductVariations()->checkRequiredFields();
-			if(!$variation_check){
-				return false;
-			}
-
 			return [
-				'ID'            => $this->getProductID(),
-				'UrunAdi'       => $this->getProductName(),
-				'Aktif'         => $this->getProductIsActive(),
-				'AnaKategoriID' => $this->getProductCategoryId(),
-				'Kategoriler'   => $this->getProductCategoriesIds(),
-				'ListedeGoster' => $this->getProductShowList(),
-				'MarkaID'       => $this->getProductBrandId(),
-				'Resimler'      => $this->getProductImages(),
-				'SatisBirimi'   => $this->getProductUnitName(),
-				'TedarikciID'   => $this->getProductSupplierId(),
-				'TedarikciKodu' => $this->getProductSupplierCode(),
+				'ID'            => $this->product_id ?? 0,
+				'UrunAdi'       => $this->product_name,
+				'Aktif'         => $this->product_is_active ?? true,
+				'AnaKategoriID' => $this->product_category_id,
+				'Kategoriler'   => $this->product_categories_ids,
+				'ListedeGoster' => $this->product_show_list ?? true,
+				'MarkaID'       => $this->product_brand_id,
+				'Resimler'      => $this->product_images,
+				'SatisBirimi'   => $this->product_unit_name,
+				'TedarikciID'   => $this->product_supplier_id,
+				'TedarikciKodu' => $this->product_supplier_code,
 				'Varyasyonlar'  => [
-					'Varyasyon' => $this->getProductVariations()->productVariationToArray(),
+					'Varyasyon' => ($this->product_variations->product_variation_to_array ?? null),
 				],
-				'Vitrin'        => $this->getProductHighlighting()
+				'Vitrin'        => $this->product_highlighting ?? true
 			];
 		}
 
-
-		public function ukAyarToArray(){
+		public function uk_ayar_to_array(){
 			return $this->ukAyar;
 		}
 

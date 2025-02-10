@@ -2,11 +2,17 @@
 
 	namespace Hasokeyk\Ticimax\Products;
 
+	use Hasokeyk\Ticimax\TicimaxHelpers;
+
 	class TicimaxProductVariationModel{
 
+		private $product_variation_id;
 		private $product_variation_is_active;
 		private $product_variation_money_unit_id;
 		private $product_variation_sale_price;
+		private $product_variation_stock_quantity;
+		private $product_variation_stock_code;
+		private $product_variation_barcode;
 
 		public $vAyar = [
 			"AktifGuncelle"                      => false,
@@ -68,73 +74,100 @@
 			"UyeTipiFiyat9Guncelle"              => false,
 		];
 
-		private $requiredFields = [
-			'setProductVariationIsActive'    => 'product_variation_is_active',
-			'setProductVariationMoneyUnitId' => 'product_variation_money_unit_id',
-			'setProductVariationSalePrice'   => 'product_variation_sale_price',
+		private $request_params = [
+			'product_variation_money_unit_id',
+			'product_variation_sale_price',
+			'product_variation_stock_code',
+//			'product_variation_stock_quantity',
 		];
-		private $calledGetters  = [];
 
-		public function checkRequiredFields(){
-			$missingFields = [];
-			foreach($this->requiredFields as $method_name => $variation_name){
-				if(strlen($this->$variation_name) <= 0){
-					$missingFields[] = $method_name;
-				}
-			}
+		private $ticimax_helper;
 
-			if(!empty($missingFields)){
-				$missingFieldsString = implode(', ', $missingFields);
-				trigger_error("The following getter methods were not called (and are required): ".$missingFieldsString, E_USER_WARNING);
-				return false;
-			}
-
-			return true;
+		function __construct(){
+			$this->ticimax_helper = new TicimaxHelpers();
 		}
 
-		public function getProductVariationIsActive(){
+		public function get_product_variation_id(){
+			return $this->product_variation_id;
+		}
+
+		public function set_product_variation_id($product_variation_id): void{
+			$this->product_variation_id = $product_variation_id;
+		}
+
+		public function get_product_variation_is_active(){
 			return $this->product_variation_is_active;
 		}
 
-		public function setProductVariationIsActive($product_variation_is_active){
+		public function set_product_variation_is_active($product_variation_is_active): void{
 			$this->product_variation_is_active = $product_variation_is_active;
-			$this->vAyar['AktifGuncelle'] = true;
-			return $this;
+			$this->vAyar['AktifGuncelle']      = true;
 		}
 
-		public function getProductVariationMoneyUnitId(){
+		public function get_product_variation_money_unit_id(){
 			return $this->product_variation_money_unit_id;
 		}
 
-		public function setProductVariationMoneyUnitId($product_variation_money_unit_id){
+		public function set_product_variation_money_unit_id($product_variation_money_unit_id): void{
 			$this->product_variation_money_unit_id = $product_variation_money_unit_id;
-			$this->vAyar['ParaBirimiGuncelle'] = true;
-			return $this;
+			$this->vAyar['ParaBirimiGuncelle']     = true;
 		}
 
-		public function getProductVariationSalePrice(){
+		public function get_product_variation_sale_price(){
 			return $this->product_variation_sale_price;
 		}
 
-		public function setProductVariationSalePrice($product_variation_sale_price){
+		public function set_product_variation_sale_price($product_variation_sale_price): void{
 			$this->product_variation_sale_price = $product_variation_sale_price;
 			$this->vAyar['SatisFiyatiGuncelle'] = true;
-			return $this;
 		}
 
-		public function productVariationToArray(){
+		public function get_product_variation_stock_quantity(){
+			return $this->product_variation_stock_quantity;
+		}
 
-			$check = $this->checkRequiredFields();
+		public function set_product_variation_stock_quantity($product_variation_stock_quantity): void{
+			$this->product_variation_stock_quantity = $product_variation_stock_quantity;
+			$this->vAyar['StokAdediGuncelle']       = true;
+		}
+
+		public function get_product_variation_stock_code(){
+			return $this->product_variation_stock_code;
+		}
+
+		public function set_product_variation_stock_code($product_variation_stock_code): void{
+			$this->product_variation_stock_code = $product_variation_stock_code;
+			$this->vAyar['StokKoduGuncelle']    = true;
+		}
+
+		public function get_product_variation_barcode(){
+			return $this->product_variation_barcode;
+		}
+
+		public function set_product_variation_barcode($product_variation_barcode): void{
+			$this->product_variation_barcode = $product_variation_barcode;
+		}
+
+		public function product_variation_to_array(){
+
+			$check = $this->ticimax_helper->check_request_params($this, $this->request_params);
 			if(!$check){
 				return false;
 			}
 
 			return [
-				'ID'           => 0,
-				'Aktif'        => $this->getProductVariationIsActive(),
-				'ParaBirimiID' => $this->getProductVariationMoneyUnitId(),
-				'SatisFiyati'  => $this->getProductVariationSalePrice(),
+				'ID'           => $this->product_variation_id ?? 0,
+				'Aktif'        => $this->product_variation_is_active ?? true,
+				'ParaBirimiID' => $this->product_variation_money_unit_id,
+				'StokAdedi'    => $this->product_variation_stock_quantity,
+				'StokKodu'     => $this->product_variation_stock_code,
+				'SatisFiyati'  => $this->product_variation_sale_price,
+				'Barkod'       => $this->product_variation_barcode,
 			];
+		}
+
+		public function v_ayar_to_array(){
+			return $this->vAyar;
 		}
 
 	}

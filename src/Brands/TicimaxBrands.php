@@ -24,14 +24,14 @@
 						'kategoriID' => 0
 					]
 				]);
-				return [
+				return (object)[
 					'status'   => 'success',
-					'data'     => $response->SelectMarkaResult->Marka ?? null,
+					'data'     => isset($response->SelectMarkaResult->Marka->ID) ? [$response->SelectMarkaResult->Marka] : ($response->SelectMarkaResult->Marka ?? null), //EĞER TEK VERİ VARSA DİREKT ERİŞİM VERİYOR DÖNGÜYE ALINCA HATA VERMEMESİ İÇİN TEK VERİ VARSA DİZİ İÇİNE OTOMATİK ALIYORUZ
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
-				return [
+				return (object)[
 					'status'   => 'danger',
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
@@ -41,22 +41,22 @@
 		}
 
 		public function get_brand($brand_id){
-			$client = $this->ticimax->soap_client($this->api_url);
+			$client = $this->ticimax_request->soap_client($this->api_url);
 			try{
 				$response = $client->__soapCall("SelectMarka", [
 					[
-						'UyeKodu' => $this->ticimax->key,
+						'UyeKodu' => $this->ticimax_request->key,
 						'markaID' => $brand_id
 					]
 				]);
-				return [
+				return (object)[
 					'status'   => 'success',
 					'data'     => $response->SelectMarkaResult->Marka ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
-				return [
+				return (object)[
 					'status'   => 'danger',
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
@@ -84,14 +84,14 @@
 						'marka'   => $ticimax_brand
 					]
 				]);
-				return [
+				return (object)[
 					'status'   => 'success',
 					'data'     => $response->SaveMarkaResult ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
-				return [
+				return (object)[
 					'status'   => 'danger',
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
@@ -118,14 +118,14 @@
 						'marka'   => $ticimax_brand
 					]
 				]);
-				return [
+				return (object)[
 					'status'   => 'success',
 					'data'     => $response->SaveMarkaResult ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
-				return [
+				return (object)[
 					'status'   => 'danger',
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
@@ -134,7 +134,7 @@
 			}
 		}
 
-		public function del_brand($brand_id): array{
+		public function del_brand($brand_id){
 			$client = $this->ticimax_request->soap_client($this->api_url);
 			try{
 				$response = $client->__soapCall("DeleteMarka", [
@@ -143,14 +143,14 @@
 						'MarkaID' => $brand_id
 					]
 				]);
-				return [
+				return (object)[
 					'status'   => 'success',
 					'data'     => $response->DeleteMarkaResult ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
-				return [
+				return (object)[
 					'status'   => 'danger',
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
