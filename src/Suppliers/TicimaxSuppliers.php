@@ -1,11 +1,11 @@
 <?php
 
-	namespace Hasokeyk\Ticimax\Categories;
+	namespace Hasokeyk\Ticimax\Suppliers;
 
 	use SoapFault;
 	use Hasokeyk\Ticimax\TicimaxRequest;
 
-	class TicimaxCategories{
+	class TicimaxSuppliers{
 
 		public $api_url = "/Servis/UrunServis.svc?singleWsdl";
 
@@ -15,18 +15,19 @@
 			$this->ticimax_request = $ticimax_request;
 		}
 
-		public function get_categories(){
+		public function get_suppliers(){
 			$client = $this->ticimax_request->soap_client($this->api_url);
 			try{
-				$response = $client->__soapCall("SelectKategori", [
+				$response = $client->__soapCall("SelectTedarikci", [
 					[
-						'UyeKodu'    => $this->ticimax_request->key,
-						'kategoriID' => 0
+						'UyeKodu'     => $this->ticimax_request->key,
+						'tedarikciID' => 0,
+						'kategoriID'  => 0,
 					]
 				]);
 				return [
 					'status'   => 'success',
-					'data'     => $response->SelectKategoriResult->Kategori ?? null,
+					'data'     => $response->SelectTedarikciResult->Tedarikci ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
@@ -40,18 +41,19 @@
 			}
 		}
 
-		public function get_category($category_id){
+		public function get_supplier($supplier_id){
 			$client = $this->ticimax_request->soap_client($this->api_url);
 			try{
-				$response = $client->__soapCall("SelectKategori", [
+				$response = $client->__soapCall("SelectTedarikci", [
 					[
-						'UyeKodu'    => $this->ticimax_request->key,
-						'kategoriID' => $category_id
+						'UyeKodu'     => $this->ticimax_request->key,
+						'tedarikciID' => $supplier_id,
+						'kategoriID'  => 0,
 					]
 				]);
 				return [
 					'status'   => 'success',
-					'data'     => $response->SelectKategoriResult->Kategori ?? null,
+					'data'     => $response->SelectTedarikciResult->Tedarikci ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
@@ -65,29 +67,28 @@
 			}
 		}
 
-		public function create_category(TicimaxCategoryModel $ticimax_category_model){
+		public function create_supplier(TicimaxSupplierModel $ticimax_supplier_model){
 			$client = $this->ticimax_request->soap_client($this->api_url);
 			try{
-				$ticimax_category = $ticimax_category_model->to_array();
+				$ticimax_supplier = $ticimax_supplier_model->to_array();
 
-				if(isset($ticimax_category['ID']) and $ticimax_category['ID'] != 0){
+				if(isset($ticimax_supplier['ID']) and $ticimax_supplier['ID'] != 0){
 					return [
 						'status'  => 'danger',
-						'message' => 'Yeni kategori oluşturmak için kategori ID 0 girilmeli'
+						'message' => 'Yeni Tedarikçi oluşturmak için marka ID 0 girilmeli'
 					];
 				}
 
-				$ticimax_category['ID'] = 0;
-
-				$response = $client->__soapCall("SaveKategori", [
+				$ticimax_supplier['ID'] = 0;
+				$response               = $client->__soapCall("SaveTedarikci", [
 					[
-						'UyeKodu'  => $this->ticimax_request->key,
-						'kategori' => $ticimax_category
+						'UyeKodu'   => $this->ticimax_request->key,
+						'tedarikci' => $ticimax_supplier
 					]
 				]);
 				return [
 					'status'   => 'success',
-					'data'     => $response->SaveKategoriResult ?? null,
+					'data'     => $response->SaveTedarikciResult ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
@@ -101,26 +102,27 @@
 			}
 		}
 
-		public function update_category(TicimaxCategoryModel $ticimax_category_model){
+		public function update_supplier(TicimaxSupplierModel $ticimax_supplier_model){
 			$client = $this->ticimax_request->soap_client($this->api_url);
 			try{
-				$ticimax_category = $ticimax_category_model->to_array();
-				if(isset($ticimax_category['ID']) and $ticimax_category['ID'] == 0){
+				$ticimax_supplier = $ticimax_supplier_model->to_array();
+
+				if(isset($ticimax_supplier['ID']) and $ticimax_supplier['ID'] == 0){
 					return [
 						'status'  => 'danger',
-						'message' => 'Kategori güncellerken kategori ID 0 girilemez '
+						'message' => 'Tedarikçi güncellemek için marka ID 0 girilmemelidir'
 					];
 				}
 
-				$response = $client->__soapCall("SaveKategori", [
+				$response = $client->__soapCall("SaveTedarikci", [
 					[
-						'UyeKodu'  => $this->ticimax_request->key,
-						'kategori' => $ticimax_category
+						'UyeKodu'   => $this->ticimax_request->key,
+						'tedarikci' => $ticimax_supplier
 					]
 				]);
 				return [
 					'status'   => 'success',
-					'data'     => $response->SaveKategoriResult ?? null,
+					'data'     => $response->SaveTedarikciResult ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
@@ -134,18 +136,18 @@
 			}
 		}
 
-		public function del_category($category_id): array{
+		public function del_supplier($supplier_id): array{
 			$client = $this->ticimax_request->soap_client($this->api_url);
 			try{
-				$response = $client->__soapCall("DeleteKategori", [
+				$response = $client->__soapCall("DeleteTedarikci", [
 					[
-						'UyeKodu'    => $this->ticimax_request->key,
-						'KategoriID' => $category_id
+						'UyeKodu'     => $this->ticimax_request->key,
+						'TedarikciID' => $supplier_id
 					]
 				]);
 				return [
 					'status'   => 'success',
-					'data'     => $response->DeleteKategoriResult ?? null,
+					'data'     => $response->DeleteTedarikciResult ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
@@ -158,5 +160,4 @@
 				];
 			}
 		}
-
 	}

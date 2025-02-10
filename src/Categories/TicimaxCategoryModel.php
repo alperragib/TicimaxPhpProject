@@ -2,6 +2,8 @@
 
 	namespace Hasokeyk\Ticimax\Categories;
 
+	use Hasokeyk\Ticimax\TicimaxHelpers;
+
 	class TicimaxCategoryModel{
 
 		public $category_id;
@@ -15,175 +17,134 @@
 		public $category_seo_description;
 		public $category_seo_title;
 		public $category_sort;
+		public $category_show_menu;
 
-		/**
-		 * @return mixed
-		 */
-		public function getCategoryId(){
+		private $ticimax_helper;
+
+		function __construct(){
+			$this->ticimax_helper = new TicimaxHelpers();
+		}
+
+		private $request_params = [
+			'category_name',
+		];
+
+		public function get_category_id(){
 			return $this->category_id;
 		}
 
-		/**
-		 * @param mixed $category_id
-		 */
-		public function setCategoryId($category_id): void{
+		public function set_category_id($category_id){
 			$this->category_id = $category_id;
 		}
 
-		/**
-		 * @return mixed
-		 */
-		public function getCategoryName(){
+		public function get_category_name(){
 			return $this->category_name;
 		}
 
-		/**
-		 * @param mixed $category_name
-		 */
-		public function setCategoryName($category_name): void{
+		public function set_category_name($category_name){
 			$this->category_name = $category_name;
 		}
 
-		/**
-		 * @return mixed
-		 */
-		public function getCategoryDescription(){
+		public function get_category_description(){
 			return $this->category_description;
 		}
 
-		/**
-		 * @param mixed $category_description
-		 */
-		public function setCategoryDescription($category_description): void{
+		public function set_category_description($category_description){
 			$this->category_description = $category_description;
 		}
 
-		/**
-		 * @return mixed
-		 */
-		public function getCategoryParentId(){
+		public function get_category_parent_id(){
 			return $this->category_parent_id;
 		}
 
-		/**
-		 * @param mixed $category_parent_id
-		 */
-		public function setCategoryParentId($category_parent_id): void{
+		public function set_category_parent_id($category_parent_id){
 			$this->category_parent_id = $category_parent_id;
 		}
 
-		/**
-		 * @return mixed
-		 */
-		public function getCategoryStatus(){
+		public function get_category_status(){
 			return $this->category_status;
 		}
 
-		/**
-		 * @param mixed $category_status
-		 */
-		public function setCategoryStatus($category_status): void{
+		public function set_category_status(bool $category_status){
 			$this->category_status = $category_status;
 		}
 
-		/**
-		 * @return mixed
-		 */
-		public function getCategoryCode(){
+		public function get_category_code(){
 			return $this->category_code;
 		}
 
-		/**
-		 * @param mixed $category_code
-		 */
-		public function setCategoryCode($category_code): void{
+		public function set_category_code($category_code){
 			$this->category_code = $category_code;
 		}
 
-		/**
-		 * @return mixed
-		 */
-		public function getCategorySeoPermalink(){
+		public function get_category_seo_permalink(){
 			return $this->category_seo_permalink;
 		}
 
-		/**
-		 * @param mixed $category_seo_permalink
-		 */
-		public function setCategorySeoPermalink($category_seo_permalink): void{
-			$this->category_seo_permalink = $category_seo_permalink;
+		public function set_category_seo_permalink($category_seo_permalink){
+			$this->category_seo_permalink = $category_seo_permalink ?? $this->category_name;
 		}
 
-		/**
-		 * @return mixed
-		 */
-		public function getCategorySeoKeyword(){
+		public function get_category_seo_keyword(){
 			return $this->category_seo_keyword;
 		}
 
-		/**
-		 * @param mixed $category_seo_keyword
-		 */
-		public function setCategorySeoKeyword($category_seo_keyword): void{
+		public function set_category_seo_keyword($category_seo_keyword){
 			$this->category_seo_keyword = $category_seo_keyword;
 		}
 
-		/**
-		 * @return mixed
-		 */
-		public function getCategorySeoDescription(){
+		public function get_category_seo_description(){
 			return $this->category_seo_description;
 		}
 
-		/**
-		 * @param mixed $category_seo_description
-		 */
-		public function setCategorySeoDescription($category_seo_description): void{
+		public function set_category_seo_description($category_seo_description){
 			$this->category_seo_description = $category_seo_description;
 		}
 
-		/**
-		 * @return mixed
-		 */
-		public function getCategorySeoTitle(){
+		public function get_category_seo_title(){
 			return $this->category_seo_title;
 		}
 
-		/**
-		 * @param mixed $category_seo_title
-		 */
-		public function setCategorySeoTitle($category_seo_title): void{
+		public function set_category_seo_title($category_seo_title){
 			$this->category_seo_title = $category_seo_title;
 		}
 
-		/**
-		 * @return mixed
-		 */
-		public function getCategorySort(){
+		public function get_category_sort(){
 			return $this->category_sort;
 		}
 
-		/**
-		 * @param mixed $category_sort
-		 */
-		public function setCategorySort($category_sort): void{
+		public function set_category_sort($category_sort){
 			$this->category_sort = $category_sort;
 		}
 
-		public function toArray(){
+		public function get_category_show_menu(){
+			return $this->category_show_menu;
+		}
+
+		public function set_category_show_menu($category_show_menu): void{
+			$this->category_show_menu = $category_show_menu;
+		}
+
+		public function to_array(){
+
+			$check = $this->ticimax_helper->check_request_params($this, $this->request_params);
+			if(!$check){
+				return false;
+			}
+
 			return [
-				'ID'                 => $this->category_id,
-				'PID'                => $this->category_parent_id,
-				'Aktif'              => $this->category_status,
+				'ID'                 => $this->category_id ?? 0,
+				'PID'                => $this->category_parent_id ?? 0,
+				'Aktif'              => $this->category_status ?? true,
 				'Tanim'              => $this->category_name,
-				'Kod'                => $this->category_code,
+				'Kod'                => $this->category_code ?? $this->category_name,
 				'SeoAnahtarKelime'   => $this->category_seo_keyword,
-				'SeoSayfaBaslik'     => $this->category_seo_title,
+				'SeoSayfaBaslik'     => $this->category_seo_title ?? $this->ticimax_helper->string_to_seo_title($this->category_name),
 				'SeoSayfaAciklama'   => $this->category_seo_description,
 				'Icerik'             => $this->category_description,
-				'Sira'               => $this->category_sort,
-				'Url'                => $this->category_seo_permalink,
-				'KategoriMenuGoster' => true
+				'Sira'               => $this->category_sort ?? 0,
+				'Url'                => $this->category_seo_permalink ?? $this->ticimax_helper->string_to_seo_url($this->category_name),
+				'KategoriMenuGoster' => $this->category_show_menu ?? true,
 			];
 		}
 

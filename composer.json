@@ -10,7 +10,8 @@
     }
   ],
   "require": {
-    "ext-soap": "*"
+    "ext-soap": "*",
+    "ext-mbstring": "*"
   },
   "autoload": {
     "psr-4": {
