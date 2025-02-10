@@ -16,6 +16,7 @@
 		}
 
 		public function get_products($filters = [], $pagination = []){
+			$client = $this->ticimax_request->soap_client($this->api_url);
 			try{
 
 				// Varsayılan filtre ve sayfalama ayarları
@@ -39,7 +40,6 @@
 				$urun_filteleme = array_merge($defaultFilters, $filters);
 				$urun_sayfalama = array_merge($defaultPagination, $pagination);
 
-				$client   = $this->ticimax_request->soap_client($this->api_url);
 				$response = $client->__soapCall("SelectUrun", [
 					[
 						'UyeKodu' => $this->ticimax_request->key,
@@ -48,19 +48,23 @@
 					]
 				]);
 				return [
-					'status' => 'success',
-					'data'   => $response->SelectUrunResult->UrunKarti ?? null
+					'status'   => 'success',
+					'data'     => $response->SelectUrunResult->UrunKarti ?? null,
+					'request'  => $client->__getLastRequest(),
+					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
 				return [
-					'status'  => 'danger',
-					'message' => $e->getMessage()
+					'status'   => 'danger',
+					'message'  => $e->getMessage(),
+					'request'  => $client->__getLastRequest(),
+					'response' => $client->__getLastResponse(),
 				];
 			}
 		}
 
-
 		public function create_products(TicimaxProductCardModel $ticimax_product_card){
+			$client = $this->ticimax_request->soap_client($this->api_url);
 			try{
 
 				$ticimax_product_card_array          = $ticimax_product_card->productToArray();
@@ -71,8 +75,6 @@
 				}
 
 				$ticimax_product_variation_settings_array = $ticimax_product_card->getProductVariations()->vAyar;
-
-				$client = $this->ticimax_request->soap_client($this->api_url);
 
 				$params = [
 					[
@@ -87,17 +89,17 @@
 
 				$response = $client->__soapCall("SaveUrun", $params);
 				return [
-					'status' => 'success',
-					'data'   => $response ?? null,
-					'last'   => $client->__getLastRequest(),
-					'last2'  => $client->__getLastResponse(),
+					'status'   => 'success',
+					'data'     => $response ?? null,
+					'request'  => $client->__getLastRequest(),
+					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
 				return [
-					'status'  => 'danger',
-					'message' => $e->getMessage(),
-					'last'    => $client->__getLastRequest(),
-					'last2'   => $client->__getLastResponse(),
+					'status'   => 'danger',
+					'message'  => $e->getMessage(),
+					'request'  => $client->__getLastRequest(),
+					'response' => $client->__getLastResponse(),
 				];
 			}
 		}
