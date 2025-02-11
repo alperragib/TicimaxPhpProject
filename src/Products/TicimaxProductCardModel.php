@@ -247,7 +247,7 @@
 				return false;
 			}
 
-			return [
+			$product_array = [
 				'ID'            => $this->product_id ?? 0,
 				'UrunAdi'       => $this->product_name,
 				'Aktif'         => $this->product_is_active ?? true,
@@ -259,11 +259,14 @@
 				'SatisBirimi'   => $this->product_unit_name,
 				'TedarikciID'   => $this->product_supplier_id,
 				'TedarikciKodu' => $this->product_supplier_code,
-				'Varyasyonlar'  => [
-					'Varyasyon' => ($this->product_variations->product_variation_to_array ?? null),
-				],
 				'Vitrin'        => $this->product_highlighting ?? true
 			];
+
+			if(is_object($this->get_product_variations())){
+				$product_array['Varyasyonlar']['Varyasyon'] = ($this->product_variations->product_variation_to_array() ?? null);
+			}
+
+			return $product_array;
 		}
 
 		public function uk_ayar_to_array(){

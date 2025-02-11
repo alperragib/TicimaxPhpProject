@@ -81,7 +81,7 @@
 					return false;
 				}
 
-				$ticimax_product_variation_settings_array = $ticimax_product_card->get_product_variations()->v_ayar_to_array();
+				$ticimax_product_variation_settings_array = ($ticimax_product_card->get_product_variations() !== null ? $ticimax_product_card->get_product_variations()->v_ayar_to_array() : ((new TicimaxProductVariationModel())->v_ayar_to_array()));
 
 				$params = [
 					[
@@ -121,7 +121,7 @@
 				if(isset($ticimax_product_card_array['ID']) and $ticimax_product_card_array['ID'] == 0){
 					return (object)[
 						'status'  => 'danger',
-						'message' => 'Ürün güncellerken kategori ID 0 girilemez '
+						'message' => 'Ürün güncellerken ürün ID 0 girilemez'
 					];
 				}
 

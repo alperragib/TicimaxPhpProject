@@ -13,6 +13,7 @@
 		private $product_variation_stock_quantity;
 		private $product_variation_stock_code;
 		private $product_variation_barcode;
+		private $product_variation_images;
 
 		public $vAyar = [
 			"AktifGuncelle"                      => false,
@@ -78,7 +79,6 @@
 			'product_variation_money_unit_id',
 			'product_variation_sale_price',
 			'product_variation_stock_code',
-//			'product_variation_stock_quantity',
 		];
 
 		private $ticimax_helper;
@@ -148,6 +148,15 @@
 			$this->product_variation_barcode = $product_variation_barcode;
 		}
 
+		public function get_product_variation_images(){
+			return $this->product_variation_images;
+		}
+
+		public function set_product_variation_images($product_variation_images): void{
+			$this->product_variation_images   = $product_variation_images;
+			$this->vAyar['UrunResimGuncelle'] = true;
+		}
+
 		public function product_variation_to_array(){
 
 			$check = $this->ticimax_helper->check_request_params($this, $this->request_params);
@@ -163,6 +172,7 @@
 				'StokKodu'     => $this->product_variation_stock_code,
 				'SatisFiyati'  => $this->product_variation_sale_price,
 				'Barkod'       => $this->product_variation_barcode,
+				'Resimler'     => $this->product_variation_images,
 			];
 		}
 
