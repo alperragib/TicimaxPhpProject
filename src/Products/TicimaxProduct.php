@@ -96,8 +96,6 @@
 					]
 				];
 
-				print_r($params);
-
 				$response = $client->__soapCall("SaveUrun", $params);
 				return (object)[
 					'status'   => 'success',
