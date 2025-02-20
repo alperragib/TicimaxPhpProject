@@ -8,11 +8,17 @@
 			$missing_params = [];
 			foreach($request_params as $method_name){
 				$new_method_name = 'get_'.$method_name;
-				if (!method_exists($this_class, $new_method_name)) {
-					if(is_array($this_class) and count($this_class) == 1){
-						$missing_params[] = $new_method_name;
-					}else if(strlen($this_class->$new_method_name()) == 0){
-						$missing_params[] = $new_method_name;
+				$old_method_name = 'set_'.$method_name;
+
+				if(method_exists($this_class, $new_method_name)){
+					if(is_null($this_class->$new_method_name())){
+						$missing_params[] = $old_method_name;
+					}
+					else if(is_array($this_class->$new_method_name()) and $this_class->$new_method_name() == null){
+						$missing_params[] = $old_method_name;
+					}
+					else if(empty($this_class->$new_method_name())){
+						$missing_params[] = $old_method_name;
 					}
 				}
 			}

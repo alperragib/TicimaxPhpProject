@@ -5,7 +5,7 @@
 	use SoapFault;
 	use Hasokeyk\Ticimax\TicimaxRequest;
 
-	class TicimaxProducts{
+	class TicimaxProduct{
 
 		public $api_url = "/Servis/UrunServis.svc?singleWsdl";
 
@@ -78,7 +78,13 @@
 
 				$ticimax_product_cards_array = [];
 				foreach($ticimax_product_cards as $ticimax_product_card){
-					$ticimax_product_cards_array['UrunKarti'][] = $ticimax_product_card->to_array();
+					$get_array = $ticimax_product_card->to_array();
+					if(is_array($get_array)){
+						$ticimax_product_cards_array['UrunKarti'][] = $get_array;
+					}
+					else{
+						return false;
+					}
 				}
 
 				$params = [
@@ -109,7 +115,7 @@
 			}
 		}
 
-		public function update_main_products(TicimaxProductModel $ticimax_product_card){
+		public function update_main_products(TicimaxProduct $ticimax_product_card){
 			$client = $this->ticimax_request->soap_client($this->api_url);
 			try{
 

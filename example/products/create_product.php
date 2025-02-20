@@ -2,7 +2,7 @@
 
 	use Hasokeyk\Ticimax\Ticimax;
 	use Hasokeyk\Ticimax\Products\TicimaxProductVariationModel;
-	use Hasokeyk\Ticimax\Products\TicimaxProductCardModel;
+	use Hasokeyk\Ticimax\Products\TicimaxProduct;
 
 	require_once (__DIR__)."/vendor/autoload.php";
 
@@ -13,7 +13,7 @@
 
 	$ticimax_products = $ticimax->products();
 
-	$ticimax_product_card = new TicimaxProductCardModel();
+	$ticimax_product_card = new TicimaxProduct();
 	$ticimax_product_card->setProductID(0);
 	$ticimax_product_card->setProductName('Hayatı Kodla');
 	$ticimax_product_card->setProductIsActive(true);

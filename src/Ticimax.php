@@ -3,7 +3,7 @@
 	namespace Hasokeyk\Ticimax;
 
 	use Hasokeyk\Ticimax\Brands\TicimaxBrands;
-	use Hasokeyk\Ticimax\Products\TicimaxProducts;
+	use Hasokeyk\Ticimax\Products\TicimaxProduct;
 	use Hasokeyk\Ticimax\Suppliers\TicimaxSuppliers;
 	use Hasokeyk\Ticimax\Categories\TicimaxCategories;
 
@@ -42,7 +42,7 @@
 		}
 
 		function products(){
-			return new TicimaxProducts($this->request);
+			return new TicimaxProduct($this->request);
 		}
 
 		function brands(){

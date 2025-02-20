@@ -5,7 +5,7 @@
 	use SoapFault;
 	use Hasokeyk\Ticimax\TicimaxRequest;
 
-	class TicimaxProducts{
+	class TicimaxProductModel{
 
 		public $api_url = "/Servis/UrunServis.svc?singleWsdl";
 
