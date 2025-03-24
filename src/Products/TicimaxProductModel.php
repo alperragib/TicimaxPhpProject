@@ -6,27 +6,33 @@
 
 	class TicimaxProductModel{
 
-		public $product_id             = 0;
-		public $product_name           = '';
-		public $product_description    = '';
-		public $product_is_active      = true;
-		public $product_category_id    = 0;
-		public $product_categories_ids = [];
-		public $product_show_list      = true;
-		public $product_brand_id       = 0;
-		public $product_supplier_id    = 0;
-		public $product_variations     = [];
-		public $product_highlighting   = true;
-		public $product_images         = [];
-		public $product_unit_name      = null;
+		public $product_id                = 0;
+		public $product_name              = '';
+		public $product_description       = '';
+		public $product_is_active         = true;
+		public $product_category_id       = 0;
+		public $product_categories_ids    = [];
+		public $product_show_list         = true;
+		public $product_brand_id          = 0;
+		public $product_supplier_id       = 0;
+		public $product_variations        = [];
+		public $product_highlighting      = true;
+		public $product_images            = [];
+		public $product_unit_name         = null;
+		public $product_1_custom_variable = null;
+		public $product_2_custom_variable = null;
+		public $product_3_custom_variable = null;
+		public $product_4_custom_variable = null;
+		public $product_5_custom_variable = null;
+
 
 		private $request_params = [
-			//'product_name',
-			//'product_is_active',
-			//'product_category_id',
-			//'product_brand_id',
+			'product_name',
+			'product_is_active',
+			'product_category_id',
+			'product_brand_id',
 			'product_variations',
-			//'product_unit_name',
+			'product_unit_name',
 		];
 
 		private $ticimax_helper;
@@ -145,6 +151,46 @@
 			$this->product_unit_name = $product_unit_name;
 		}
 
+		public function get_product_1_custom_variable(){
+			return $this->product_1_custom_variable;
+		}
+
+		public function set_product_1_custom_variable($product_1_custom_variable): void{
+			$this->product_1_custom_variable = $product_1_custom_variable;
+		}
+
+		public function get_product_2_custom_variable(){
+			return $this->product_2_custom_variable;
+		}
+
+		public function set_product_2_custom_variable($product_2_custom_variable): void{
+			$this->product_2_custom_variable = $product_2_custom_variable;
+		}
+
+		public function get_product_3_custom_variable(){
+			return $this->product_3_custom_variable;
+		}
+
+		public function set_product_3_custom_variable($product_3_custom_variable): void{
+			$this->product_3_custom_variable = $product_3_custom_variable;
+		}
+
+		public function get_product_4_custom_variable(){
+			return $this->product_4_custom_variable;
+		}
+
+		public function set_product_4_custom_variable($product_4_custom_variable): void{
+			$this->product_4_custom_variable = $product_4_custom_variable;
+		}
+
+		public function get_product_5_custom_variable(){
+			return $this->product_5_custom_variable;
+		}
+
+		public function set_product_5_custom_variable($product_5_custom_variable): void{
+			$this->product_5_custom_variable = $product_5_custom_variable;
+		}
+
 		public function to_array(){
 
 			$check = $this->ticimax_helper->check_request_params($this, $this->request_params);
@@ -163,7 +209,12 @@
 				'ListedeGoster' => $this->product_show_list,
 				'Resimler'      => $this->product_images,
 				'SatisBirimi'   => $this->product_unit_name,
-				'Vitrin'        => $this->product_highlighting
+				'Vitrin'        => $this->product_highlighting,
+				'OzelAlan1'     => $this->product_1_custom_variable,
+				'OzelAlan2'     => $this->product_2_custom_variable,
+				'OzelAlan3'     => $this->product_3_custom_variable,
+				'OzelAlan4'     => $this->product_4_custom_variable,
+				'OzelAlan5'     => $this->product_5_custom_variable,
 			];
 
 			if(is_array($this->product_variations)){

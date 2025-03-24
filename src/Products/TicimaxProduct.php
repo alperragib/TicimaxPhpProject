@@ -99,7 +99,7 @@
 				$response = $client->__soapCall("SaveUrun", $params);
 				return (object)[
 					'status'   => 'success',
-					'data'     => $response ?? null,
+					'data'     => isset($response->urunKartlari->UrunKarti->ID) ? (object)['urunKartlari' => (object)['UrunKarti' => [$response->urunKartlari->UrunKarti]]] : ($response ?? null), //EĞER TEK VERİ VARSA DİREKT ERİŞİM VERİYOR DÖNGÜYE ALINCA HATA VERMEMESİ İÇİN TEK VERİ VARSA DİZİ İÇİNE OTOMATİK ALIYORUZ
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
