@@ -3,6 +3,7 @@
 	namespace Hasokeyk\Ticimax;
 
 	use Hasokeyk\Ticimax\Brands\TicimaxBrands;
+	use Hasokeyk\Ticimax\Orders\TicimaxOrders;
 	use Hasokeyk\Ticimax\Products\TicimaxProduct;
 	use Hasokeyk\Ticimax\Suppliers\TicimaxSuppliers;
 	use Hasokeyk\Ticimax\Categories\TicimaxCategories;
@@ -51,6 +52,10 @@
 
 		function suppliers(){
 			return new TicimaxSuppliers($this->request);
+		}
+
+		function orders(){
+			return new TicimaxOrders($this->request);
 		}
 
 	}

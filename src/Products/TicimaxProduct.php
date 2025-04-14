@@ -48,12 +48,21 @@
 					]
 				]);
 
+				$total_product = $client->__soapCall("SelectUrunCount", [
+					[
+						'UyeKodu' => $this->ticimax_request->key,
+						'f'       => (object)$urun_filteleme,
+					]
+				]);
+
 				return (object)[
-					'status'   => isset($response->SelectUrunResult->UrunKarti) ? 'success' : 'danger',
-					'data'     => isset($response->SelectUrunResult->UrunKarti->ID) ? [$response->SelectUrunResult->UrunKarti] : ($response->SelectUrunResult->UrunKarti ?? null), //EĞER TEK VERİ VARSA DİREKT ERİŞİM VERİYOR DÖNGÜYE ALINCA HATA VERMEMESİ İÇİN TEK VERİ VARSA DİZİ İÇİNE OTOMATİK ALIYORUZ
-					'request'  => $client->__getLastRequest(),
-					'response' => $client->__getLastResponse(),
+					'status'        => isset($response->SelectUrunResult->UrunKarti) ? 'success' : 'danger',
+					'data'          => isset($response->SelectUrunResult->UrunKarti->ID) ? [$response->SelectUrunResult->UrunKarti] : ($response->SelectUrunResult->UrunKarti ?? null), //EĞER TEK VERİ VARSA DİREKT ERİŞİM VERİYOR DÖNGÜYE ALINCA HATA VERMEMESİ İÇİN TEK VERİ VARSA DİZİ İÇİNE OTOMATİK ALIYORUZ
+					'total_product' => $total_product->SelectUrunCountResult ?? 0,
+					'request'       => $client->__getLastRequest(),
+					'response'      => $client->__getLastResponse(),
 				];
+
 			}catch(SoapFault $e){
 				return (object)[
 					'status'   => 'danger',
