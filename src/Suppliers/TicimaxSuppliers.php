@@ -1,9 +1,9 @@
 <?php
 
-	namespace Hasokeyk\Ticimax\Suppliers;
+	namespace AlperRagib\Ticimax\Suppliers;
 
 	use SoapFault;
-	use Hasokeyk\Ticimax\TicimaxRequest;
+	use AlperRagib\Ticimax\TicimaxRequest;
 
 	class TicimaxSuppliers{
 
@@ -26,14 +26,14 @@
 					]
 				]);
 				return [
-					'status'   => 'success',
+					'status'   => true,
 					'data'     => $response->SelectTedarikciResult->Tedarikci ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
 				return [
-					'status'   => 'danger',
+					'status'   => false,
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
@@ -52,14 +52,14 @@
 					]
 				]);
 				return [
-					'status'   => 'success',
+					'status'   => true,
 					'data'     => $response->SelectTedarikciResult->Tedarikci ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
 				return [
-					'status'   => 'danger',
+					'status'   => false,
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
@@ -74,8 +74,7 @@
 
 				if(isset($ticimax_supplier['ID']) and $ticimax_supplier['ID'] != 0){
 					return [
-						'status'  => 'danger',
-						'message' => 'Yeni Tedarikçi oluşturmak için marka ID 0 girilmeli'
+						'status'  => false,
 					];
 				}
 
@@ -87,14 +86,14 @@
 					]
 				]);
 				return [
-					'status'   => 'success',
+					'status'   => true,
 					'data'     => $response->SaveTedarikciResult ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
 				return [
-					'status'   => 'danger',
+					'status'   => false,
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
@@ -109,8 +108,7 @@
 
 				if(isset($ticimax_supplier['ID']) and $ticimax_supplier['ID'] == 0){
 					return [
-						'status'  => 'danger',
-						'message' => 'Tedarikçi güncellemek için marka ID 0 girilmemelidir'
+						'status'  => false,
 					];
 				}
 
@@ -121,14 +119,14 @@
 					]
 				]);
 				return [
-					'status'   => 'success',
+					'status'   => true,
 					'data'     => $response->SaveTedarikciResult ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
 				return [
-					'status'   => 'danger',
+					'status'   => false,
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
@@ -146,14 +144,14 @@
 					]
 				]);
 				return [
-					'status'   => 'success',
+					'status'   => true,
 					'data'     => $response->DeleteTedarikciResult ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
 				return [
-					'status'   => 'danger',
+					'status'   => false,
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),

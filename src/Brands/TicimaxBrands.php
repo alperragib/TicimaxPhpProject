@@ -1,9 +1,9 @@
 <?php
 
-	namespace Hasokeyk\Ticimax\Brands;
+	namespace AlperRagib\Ticimax\Brands;
 
 	use SoapFault;
-	use Hasokeyk\Ticimax\TicimaxRequest;
+	use AlperRagib\Ticimax\TicimaxRequest;
 
 	class TicimaxBrands{
 
@@ -25,14 +25,14 @@
 					]
 				]);
 				return (object)[
-					'status'   => 'success',
+					'status'   => true,
 					'data'     => isset($response->SelectMarkaResult->Marka->ID) ? [$response->SelectMarkaResult->Marka] : ($response->SelectMarkaResult->Marka ?? null), //EĞER TEK VERİ VARSA DİREKT ERİŞİM VERİYOR DÖNGÜYE ALINCA HATA VERMEMESİ İÇİN TEK VERİ VARSA DİZİ İÇİNE OTOMATİK ALIYORUZ
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
 				return (object)[
-					'status'   => 'danger',
+					'status'   => false,
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
@@ -50,14 +50,14 @@
 					]
 				]);
 				return (object)[
-					'status'   => 'success',
+					'status'   => true,
 					'data'     => $response->SelectMarkaResult->Marka ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
 				return (object)[
-					'status'   => 'danger',
+					'status'   => false,
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
@@ -72,8 +72,7 @@
 
 				if(isset($ticimax_brand['ID']) and $ticimax_brand['ID'] != 0){
 					return [
-						'status'  => 'danger',
-						'message' => 'Yeni marka oluşturmak için marka ID 0 girilmeli'
+						'status'  => false,
 					];
 				}
 
@@ -85,14 +84,14 @@
 					]
 				]);
 				return (object)[
-					'status'   => 'success',
+					'status'   => true,
 					'data'     => $response->SaveMarkaResult ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
 				return (object)[
-					'status'   => 'danger',
+					'status'   => false,
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
@@ -107,8 +106,7 @@
 
 				if(isset($ticimax_brand['ID']) and $ticimax_brand['ID'] == 0){
 					return [
-						'status'  => 'danger',
-						'message' => 'Marka güncellemek için marka ID 0 girilmemelidir'
+						'status'  => false,
 					];
 				}
 
@@ -119,14 +117,14 @@
 					]
 				]);
 				return (object)[
-					'status'   => 'success',
+					'status'   => true,
 					'data'     => $response->SaveMarkaResult ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
 				return (object)[
-					'status'   => 'danger',
+					'status'   => false,
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
@@ -144,14 +142,14 @@
 					]
 				]);
 				return (object)[
-					'status'   => 'success',
+					'status'   => true,
 					'data'     => $response->DeleteMarkaResult ?? null,
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
 				];
 			}catch(SoapFault $e){
 				return (object)[
-					'status'   => 'danger',
+					'status'   => false,
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),

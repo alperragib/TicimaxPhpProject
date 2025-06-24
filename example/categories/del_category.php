@@ -1,7 +1,7 @@
 <?php
 
-	use Hasokeyk\Ticimax\Ticimax;
-	use Hasokeyk\Ticimax\Categories\TicimaxCategoryModel;
+	use AlperRagib\Ticimax\Ticimax;
+	use AlperRagib\Ticimax\Categories\TicimaxCategoryModel;
 
 	require_once (__DIR__)."/vendor/autoload.php";
 

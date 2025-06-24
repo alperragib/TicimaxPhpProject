@@ -1,6 +1,6 @@
 <?php
 
-	use Hasokeyk\Ticimax\Ticimax;
+	use AlperRagib\Ticimax\Ticimax;
 
 	require_once (__DIR__)."/vendor/autoload.php";
 

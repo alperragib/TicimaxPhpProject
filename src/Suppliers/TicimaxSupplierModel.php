@@ -1,8 +1,8 @@
 <?php
 
-	namespace Hasokeyk\Ticimax\Suppliers;
+	namespace AlperRagib\Ticimax\Suppliers;
 
-	use Hasokeyk\Ticimax\TicimaxHelpers;
+	use AlperRagib\Ticimax\TicimaxHelpers;
 
 	class TicimaxSupplierModel{
 

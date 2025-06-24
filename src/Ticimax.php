@@ -1,12 +1,12 @@
 <?php
 
-	namespace Hasokeyk\Ticimax;
+	namespace AlperRagib\Ticimax;
 
-	use Hasokeyk\Ticimax\Brands\TicimaxBrands;
-	use Hasokeyk\Ticimax\Orders\TicimaxOrders;
-	use Hasokeyk\Ticimax\Products\TicimaxProduct;
-	use Hasokeyk\Ticimax\Suppliers\TicimaxSuppliers;
-	use Hasokeyk\Ticimax\Categories\TicimaxCategories;
+	use AlperRagib\Ticimax\Brands\TicimaxBrands;
+	use AlperRagib\Ticimax\Orders\TicimaxOrders;
+	use AlperRagib\Ticimax\Products\TicimaxProduct;
+	use AlperRagib\Ticimax\Suppliers\TicimaxSuppliers;
+	use AlperRagib\Ticimax\Categories\TicimaxCategories;
 
 	class Ticimax{
 

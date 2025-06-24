@@ -1,6 +1,6 @@
 <?php
 
-	namespace Hasokeyk\Ticimax;
+	namespace AlperRagib\Ticimax;
 
 	use SoapFault;
 	use SoapClient;

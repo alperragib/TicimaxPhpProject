@@ -1,6 +1,6 @@
 <?php
 
-	namespace Hasokeyk\Ticimax;
+	namespace AlperRagib\Ticimax;
 
 	class TicimaxHelpers{
 
@@ -25,7 +25,7 @@
 
 			if(!empty($missing_params)){
 				$missing_params_string = implode(', ', $missing_params);
-				trigger_error("Bu parametreler zorunludur. Lütfen set ediniz : ".$missing_params_string, E_USER_WARNING);
+				trigger_error("The following required parameters are missing. Please provide them: " . $missing_params_string, E_USER_WARNING);
 				return false;
 			}
 

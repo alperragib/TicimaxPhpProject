@@ -1,6 +1,6 @@
 <?php
 
-	namespace Hasokeyk\Ticimax\Products;
+	namespace AlperRagib\Ticimax\Products;
 
 	class TicimaxProductSettingsModel{
 

@@ -1,12 +1,13 @@
 {
-  "name": "hasokeyk/ticimax-php",
-  "description": "Ticimax apisi ile entegrasyon yönetimi",
+  "name": "alperragib/ticimax-php",
+  "description": "A PHP library for integrating with the Ticimax SOAP API.",
+  "type": "library",
+  "license": "MIT",
   "minimum-stability": "stable",
-  "license": "proprietary",
   "authors": [
     {
-      "name": "Hasan",
-      "email": "hasanhasokeyk@hotmail.com"
+      "name": "Alper Ragıb",
+      "email": "alper.ragib@gmail.com"
     }
   ],
   "require": {
@@ -15,7 +16,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Hasokeyk\\Ticimax\\": "src"
+      "AlperRagib\\Ticimax\\": "src/"
     }
   }
 }

@@ -1,8 +1,8 @@
 <?php
 
-	namespace Hasokeyk\Ticimax\Categories;
+	namespace AlperRagib\Ticimax\Categories;
 
-	use Hasokeyk\Ticimax\TicimaxHelpers;
+	use AlperRagib\Ticimax\TicimaxHelpers;
 
 	class TicimaxCategoryModel{
 

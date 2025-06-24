@@ -1,9 +1,9 @@
 <?php
 
-	namespace Hasokeyk\Ticimax\Orders;
+	namespace AlperRagib\Ticimax\Orders;
 
 	use SoapFault;
-	use Hasokeyk\Ticimax\TicimaxRequest;
+	use AlperRagib\Ticimax\TicimaxRequest;
 
 	class TicimaxOrders{
 
@@ -20,14 +20,13 @@
 			$client = $this->ticimax_request->soap_client($this->api_url);
 			try{
 
-				// Varsayılan filtre ve sayfalama ayarları
 				$defaultFilters    = [
-					'EntegrasyonAktarildi' => -1,  // All
-					'SiparisDurumu'        => -1,          // -1 Tümü
-					'OdemeTipi'            => -1,             // All
-					'OdemeDurumu'          => -1,           // All
+					'EntegrasyonAktarildi' => -1,
+					'SiparisDurumu'        => -1,
+					'OdemeTipi'            => -1,
+					'OdemeDurumu'          => -1,
 					'SiparisKaynagi'       => '',
-					'SiparisID'            => -1, //
+					'SiparisID'            => -1,
 					'SiparisNo'            => '',
 					'FaturaNo'             => '',
 					'UyeID'                => -1,
@@ -45,7 +44,6 @@
 					'SiralamaYonu'   => 'DESC',
 				];
 
-				// Kullanıcıdan gelen parametrelerle birleştir
 				$urun_filteleme = array_merge($defaultFilters, $filters);
 				$urun_sayfalama = array_merge($defaultPagination, $pagination);
 
@@ -58,7 +56,7 @@
 				]);
 
 				return (object)[
-					'status'   => isset($response->SelectSiparisResult->WebSiparis) ? 'success' : 'danger',
+					'status'   => isset($response->SelectSiparisResult->WebSiparis) ? true : false,
 					'data'     => isset($response->SelectSiparisResult->WebSiparis->ID) ? [$response->SelectSiparisResult->WebSiparis->ID] : ($response->SelectSiparisResult->WebSiparis ?? null), //EĞER TEK VERİ VARSA DİREKT ERİŞİM VERİYOR DÖNGÜYE ALINCA HATA VERMEMESİ İÇİN TEK VERİ VARSA DİZİ İÇİNE OTOMATİK ALIYORUZ
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),
@@ -66,7 +64,7 @@
 
 			}catch(SoapFault $e){
 				return (object)[
-					'status'   => 'danger',
+					'status'   => false,
 					'message'  => $e->getMessage(),
 					'request'  => $client->__getLastRequest(),
 					'response' => $client->__getLastResponse(),

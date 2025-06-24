@@ -1,8 +1,8 @@
 <?php
 
-	namespace Hasokeyk\Ticimax\Brands;
+	namespace AlperRagib\Ticimax\Brands;
 
-	use Hasokeyk\Ticimax\TicimaxHelpers;
+	use AlperRagib\Ticimax\TicimaxHelpers;
 
 	class TicimaxBrandModel{
 

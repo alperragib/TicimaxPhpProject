@@ -1,8 +1,8 @@
 <?php
 
-	namespace Hasokeyk\Ticimax\Products;
+	namespace AlperRagib\Ticimax\Products;
 
-	use Hasokeyk\Ticimax\TicimaxHelpers;
+	use AlperRagib\Ticimax\TicimaxHelpers;
 
 	class TicimaxProductVariationModel{
 

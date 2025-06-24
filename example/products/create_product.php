@@ -1,8 +1,8 @@
 <?php
 
-	use Hasokeyk\Ticimax\Ticimax;
-	use Hasokeyk\Ticimax\Products\TicimaxProductVariationModel;
-	use Hasokeyk\Ticimax\Products\TicimaxProduct;
+	use AlperRagib\Ticimax\Ticimax;
+	use AlperRagib\Ticimax\Products\TicimaxProductVariationModel;
+	use AlperRagib\Ticimax\Products\TicimaxProduct;
 
 	require_once (__DIR__)."/vendor/autoload.php";
 
