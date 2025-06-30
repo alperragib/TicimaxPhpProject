@@ -1,6 +1,6 @@
 # Ticimax Web Services PHP Library
 
-## Professional Structure (2024+)
+## Professional Structure
 
 This library provides a modern, professional, and consistent PHP interface for Ticimax Web Services, using strict types, PSR standards, and a clear separation of models and services.
 
