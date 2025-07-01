@@ -2,6 +2,6 @@
 // Ticimax API config 
 
 return [
-    'mainDomain' => 'https://example.com', // <-- Change this
-    'apiKey' => 'XXXXXXXXXXXXXXXXXXXX', // <-- Change this
+    'mainDomain' => 'https://www.example.com',
+    'apiKey' => 'YOUR_API_KEY_HERE'
 ];

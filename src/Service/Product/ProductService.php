@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AlperRagib\Ticimax\Service\Product;
 
 use AlperRagib\Ticimax\Model\Product\ProductModel;
+use AlperRagib\Ticimax\Model\Product\ProductVariationModel;
 use AlperRagib\Ticimax\Model\Category\CategoryModel;
 use AlperRagib\Ticimax\TicimaxRequest;
 use SoapFault;
@@ -253,7 +254,7 @@ class ProductService
      * Get product variations with filters and pagination
      * @param array $filters Variation filters
      * @param array $pagination Pagination settings
-     * @return array List of variations
+     * @return ProductVariationModel[] Array of variation models
      */
     public function GetProductVariations(array $filters = [], array $pagination = []): array
     {
@@ -292,7 +293,11 @@ class ProductService
                 $variations = [$variations];
             }
 
-            return $variations;
+            // Convert each variation to ProductVariationModel
+            return array_map(function($variation) {
+                return new ProductVariationModel($variation);
+            }, $variations);
+
         } catch (SoapFault $e) {
             // Handle error or log
             return [];
