@@ -123,10 +123,21 @@ class OrderService
                 ]
             ];
             $response = $client->__soapCall("SaveSiparis", $params);
-            return $response->SaveSiparisResult->ID ?? 0;
+            return $response->SaveSiparisResult->ID ??  0;
         } catch (SoapFault $e) {
             // Handle error or log
             return false;
         }
+    }
+
+    public function saveOrder(): bool
+    {
+        $client = $this->request->soap_client($this->apiUrl);
+        try {
+
+        }catch (SoapFault $e) {
+
+        }
+        return false;
     }
 }
