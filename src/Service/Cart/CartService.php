@@ -198,4 +198,64 @@ class CartService
             'ErrorMessage' => 'Failed to update cart'
         ];
     }
+
+    /**
+     * Sepet listesini getirir
+     * 
+     * @param int|null $sepetId Sepet ID (-1 için filtreleme yapılmaz)
+     * @param int|null $uyeId Üye ID (-1 için filtreleme yapılmaz)
+     * @param string|null $baslangicTarihi Başlangıç tarihi (Y-m-d formatında)
+     * @param string|null $bitisTarihi Bitiş tarihi (Y-m-d formatında)
+     * @param int|null $sayfaSayisi Sayfa sayısı
+     * @param string|null $guidSepetId GUID sepet ID
+     * @return array Returns ['IsError' => bool, 'ErrorMessage' => string, 'Data' => array]
+     */
+    public function selectSepet(
+        ?int $sepetId = -1,
+        ?int $uyeId = -1,
+        ?string $baslangicTarihi = null,
+        ?string $bitisTarihi = null,
+        ?int $sayfaSayisi = null,
+        ?string $guidSepetId = null
+    ): array {
+        try {
+            // Tarihleri kontrol et ve varsayılan değerleri ayarla
+            $baslangicTarihi = $baslangicTarihi ? date('Y-m-d', strtotime($baslangicTarihi)) : date('Y-m-d', strtotime('-30 days'));
+            $bitisTarihi = $bitisTarihi ? date('Y-m-d', strtotime($bitisTarihi)) : date('Y-m-d');
+
+            $params = [
+                'UyeKodu' => $this->request->key,
+                'sepetId' => $sepetId,
+                'uyeId' => $uyeId,
+                'BaslangicTarihi' => $baslangicTarihi,
+                'BitisTarihi' => $bitisTarihi,
+                'sayfaSayisi' => $sayfaSayisi,
+                'guidSepetId' => $guidSepetId
+            ];
+
+            $response = $this->request->soap_client($this->apiUrl)->__soapCall("SelectSepet", [$params]);
+            $result = $response->SelectSepetResult ?? null;
+
+            if ($result && isset($result->Sepetler) && is_array($result->Sepetler)) {
+                return [
+                    'IsError' => false,
+                    'ErrorMessage' => '',
+                    'Data' => $result->Sepetler
+                ];
+            }
+
+            return [
+                'IsError' => false,
+                'ErrorMessage' => 'Sepet bulunamadı',
+                'Data' => []
+            ];
+
+        } catch (SoapFault $e) {
+            return [
+                'IsError' => true,
+                'ErrorMessage' => 'Sepet bilgileri getirilirken bir hata oluştu: ' . $e->getMessage(),
+                'Data' => []
+            ];
+        }
+    }
 }
