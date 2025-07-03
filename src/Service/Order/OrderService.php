@@ -374,5 +374,46 @@ class OrderService
             );
         }
     }
-    
+
+    /**
+     * Mark an order as transferred
+     * 
+     * @param int $orderId Order ID to be marked as transferred
+     * @return bool Returns true if successful
+     */
+    public function setOrderTransferred(int $orderId): bool
+    {
+        $client = $this->request->soap_client('/Servis/SiparisServis.svc');
+        
+        $params = [
+            'UyeKodu' => $this->request->getApiKey(),
+            'siparisId' => $orderId
+        ];
+
+        $response = $client->SetSiparisAktarildi($params);
+        
+        // The API returns an empty response on success
+        return true;
+    }
+
+    /**
+     * Cancel the transferred status of an order
+     * 
+     * @param int $orderId Order ID to cancel the transferred status
+     * @return bool Returns true if successful
+     */
+    public function cancelOrderTransferred(int $orderId): bool
+    {
+        $client = $this->request->soap_client('/Servis/SiparisServis.svc');
+        
+        $params = [
+            'UyeKodu' => $this->request->getApiKey(),
+            'siparisId' => $orderId
+        ];
+
+        $response = $client->SetSiparisAktarildiIptal($params);
+        
+        // The API returns an empty response on success
+        return true;
+    }
 }

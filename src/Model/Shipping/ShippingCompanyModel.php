@@ -2,21 +2,19 @@
 
 declare(strict_types=1);
 
-namespace AlperRagib\Ticimax\Model\Supplier;
-
-use AlperRagib\Ticimax\Model\BaseModel;
+namespace AlperRagib\Ticimax\Model\Shipping;
 
 /**
- * Class SupplierModel
- * Represents a supplier in the Ticimax system.
+ * Class ShippingCompanyModel
+ * Represents a shipping company in the Ticimax system
  */
-class SupplierModel extends BaseModel
+class ShippingCompanyModel
 {
     /** @var array */
     protected array $data = [];
 
     /**
-     * SupplierModel constructor.
+     * ShippingCompanyModel constructor.
      * @param array|object $data (should use original API/source field names)
      */
     public function __construct($data = [])
@@ -74,11 +72,42 @@ class SupplierModel extends BaseModel
     }
 
     /**
-     * Convert the supplier to an array for API requests.
-     * @return array
+     * Returns the data as-is, using original field names only.
      */
     public function toArray(): array
     {
         return $this->data;
     }
-}
+
+    // Helper methods for common operations
+    
+    public function getId(): int
+    {
+        return $this->ID ?? 0;
+    }
+
+    public function getName(): string
+    {
+        return $this->Tanim ?? '';
+    }
+
+    public function hasCashOnDelivery(): bool
+    {
+        return $this->KapidaOdeme ?? false;
+    }
+
+    public function getCashOnDeliveryPrice(): float
+    {
+        return $this->KapidaOdemeFiyati ?? 0.0;
+    }
+
+    public function hasCreditCardOnDelivery(): bool
+    {
+        return $this->KapidaOdemeKK ?? false;
+    }
+
+    public function getCreditCardOnDeliveryPrice(): float
+    {
+        return $this->KapidaOdemeKKFiyati ?? 0.0;
+    }
+} 

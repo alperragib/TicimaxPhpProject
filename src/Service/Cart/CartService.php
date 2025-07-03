@@ -82,7 +82,11 @@ class CartService
                 return new WebCartModel($cartData);
             }
         } catch (SoapFault $e) {
-            // Handle error or log
+            return [
+                'IsError' => true,
+                'ErrorMessage' => 'Error retrieving cart information: ' . $e->getMessage(),
+                'Data' => null
+            ];
         }
 
         return null;
@@ -158,7 +162,7 @@ class CartService
      * @param bool $updateQuantity Whether to update quantity (default: false)
      * @param bool $removeFromCart Whether to remove from cart (default: false)
      * @param int $campaignId Campaign ID (optional)
-     * @return array Returns response with IsError and ErrorMessage
+     * @return array Returns ['success' => bool, 'message' => string, 'data' => array]
      */
     public function updateCart(int $cartId, int $cartProductId, int $productId, float $quantity = 1.0, bool $updateQuantity = false, bool $removeFromCart = false, int $campaignId = 0): array
     {
@@ -184,18 +188,31 @@ class CartService
 
             if (isset($response->UpdateSepetResult)) {
                 $result = $response->UpdateSepetResult;
+                if ($result->IsError ?? true) {
+                    return [
+                        'success' => false,
+                        'message' => $result->ErrorMessage ?? 'Unknown error occurred',
+                        'data' => []
+                    ];
+                }
                 return [
-                    'IsError' => $result->IsError ?? true,
-                    'ErrorMessage' => $result->ErrorMessage ?? 'Unknown error occurred'
+                    'success' => true,
+                    'message' => 'Cart updated successfully',
+                    'data' => []
                 ];
             }
         } catch (SoapFault $e) {
-            // Handle error or log
+            return [
+                'success' => false,
+                'message' => 'Failed to update cart: ' . $e->getMessage(),
+                'data' => []
+            ];
         }
 
         return [
-            'IsError' => true,
-            'ErrorMessage' => 'Failed to update cart'
+            'success' => false,
+            'message' => 'Failed to update cart',
+            'data' => []
         ];
     }
 
@@ -208,7 +225,7 @@ class CartService
      * @param string|null $bitisTarihi Bitiş tarihi (Y-m-d formatında)
      * @param int|null $sayfaSayisi Sayfa sayısı
      * @param string|null $guidSepetId GUID sepet ID
-     * @return array Returns ['IsError' => bool, 'ErrorMessage' => string, 'Data' => array]
+     * @return array Returns ['success' => bool, 'message' => string, 'data' => array]
      */
     public function selectSepet(
         ?int $sepetId = -1,
@@ -238,23 +255,76 @@ class CartService
 
             if ($result && isset($result->Sepetler) && is_array($result->Sepetler)) {
                 return [
-                    'IsError' => false,
-                    'ErrorMessage' => '',
-                    'Data' => $result->Sepetler
+                    'success' => true,
+                    'message' => 'Cart list retrieved successfully',
+                    'data' => $result->Sepetler
                 ];
             }
 
             return [
-                'IsError' => false,
-                'ErrorMessage' => 'Sepet bulunamadı',
-                'Data' => []
+                'success' => true,
+                'message' => 'No carts found',
+                'data' => []
             ];
 
         } catch (SoapFault $e) {
             return [
-                'IsError' => true,
-                'ErrorMessage' => 'Sepet bilgileri getirilirken bir hata oluştu: ' . $e->getMessage(),
-                'Data' => []
+                'success' => false,
+                'message' => 'Error retrieving cart list: ' . $e->getMessage(),
+                'data' => []
+            ];
+        }
+    }
+
+    /**
+     * Get web cart details using SelectWebSepet API call
+     * 
+     * @param string|null $dil Language code (defaults to "TR" if empty)
+     * @param string|null $paraBirimi Currency code
+     * @param int|null $sepetId Cart ID
+     * @param int|null $uyeId User ID
+     * @return array Returns ['success' => bool, 'message' => string, 'data' => array]
+     */
+    public function selectWebSepet(
+        ?string $dil = null,
+        ?string $paraBirimi = null,
+        ?int $sepetId = null,
+        ?int $uyeId = null
+    ): array {
+        try {
+            $requestData = [
+                'Dil' => $dil ?? '',
+                'ParaBirimi' => $paraBirimi ?? 'TL',
+                'SepetId' => $sepetId,
+                'UyeId' => $uyeId
+            ];
+
+            $response = $this->request->soap_client($this->apiUrl)->__soapCall("SelectWebSepet", [
+                [
+                    'UyeKodu' => $this->request->key,
+                    'request' => (object)$requestData
+                ]
+            ]);
+
+            if (isset($response->SelectWebSepetResult) && isset($response->SelectWebSepetResult->Sepetler)) {
+                return [
+                    'success' => true,
+                    'message' => 'Cart information retrieved successfully',
+                    'data' => $response->SelectWebSepetResult->Sepetler
+                ];
+            }
+
+            return [
+                'success' => true,
+                'message' => 'No carts found',
+                'data' => []
+            ];
+
+        } catch (SoapFault $e) {
+            return [
+                'success' => false,
+                'message' => 'Error retrieving web cart information: ' . $e->getMessage(),
+                'data' => []
             ];
         }
     }

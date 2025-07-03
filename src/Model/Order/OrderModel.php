@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AlperRagib\Ticimax\Model\Order;
 
+use AlperRagib\Ticimax\Model\BaseModel;
 use AlperRagib\Ticimax\Model\Order\DeliveryAddressModel;
 use AlperRagib\Ticimax\Model\Order\OrderProductModel;
 
@@ -11,84 +12,32 @@ use AlperRagib\Ticimax\Model\Order\OrderProductModel;
  * Class OrderModel
  * Represents an order in the Ticimax system.
  */
-class OrderModel
+class OrderModel extends BaseModel
 {
-    /** @var array */
-    protected array $data = [];
-
     /**
      * OrderModel constructor.
      * @param array|object $data (should use original API/source field names)
      */
     public function __construct($data = [])
     {
-        $arr = $this->convertToArray($data);
+        parent::__construct($data);
 
-        if (isset($arr['TeslimatAdresi']) && is_array($arr['TeslimatAdresi'])) {
-            $arr['TeslimatAdresi'] = new DeliveryAddressModel($arr['TeslimatAdresi']);
+        // Handle delivery address
+        if (isset($this->data['TeslimatAdresi']) && is_array($this->data['TeslimatAdresi'])) {
+            $this->data['TeslimatAdresi'] = new DeliveryAddressModel($this->data['TeslimatAdresi']);
         }
 
-        if (isset($arr['Urunler'])) {
-            $urunler = $arr['Urunler'];
+        // Handle products
+        if (isset($this->data['Urunler'])) {
+            $urunler = $this->data['Urunler'];
             if (is_array($urunler)) {
                 if (isset($urunler[0])) {
-                    $arr['Urunler'] = array_map(fn($u) => new OrderProductModel($u), $urunler);
+                    $this->data['Urunler'] = array_map(fn($u) => new OrderProductModel($u), $urunler);
                 } else {
-                    $arr['Urunler'] = [new OrderProductModel($urunler)];
+                    $this->data['Urunler'] = [new OrderProductModel($urunler)];
                 }
             }
         }
-
-        $this->data = $arr;
-    }
-
-    /**
-     * Convert data to array recursively.
-     * @param mixed $data
-     * @return mixed
-     */
-    private function convertToArray($data)
-    {
-        if (is_array($data)) {
-            return array_map([$this, 'convertToArray'], $data);
-        }
-
-        if (is_object($data)) {
-            return $this->convertToArray((array) $data);
-        }
-
-        // Return primitive values as-is
-        return $data;
-    }
-
-    /**
-     * Magic getter method.
-     * @param string $name
-     * @return mixed
-     */
-    public function __get(string $name)
-    {
-        return $this->data[$name] ?? null;
-    }
-
-    /**
-     * Magic setter method.
-     * @param string $name
-     * @param mixed $value
-     */
-    public function __set(string $name, $value): void
-    {
-        $this->data[$name] = $value;
-    }
-
-    /**
-     * Check if a property exists.
-     * @param string $name
-     * @return bool
-     */
-    public function __isset(string $name): bool
-    {
-        return isset($this->data[$name]);
     }
 
     /**
@@ -97,7 +46,7 @@ class OrderModel
      */
     public function toArray(): array
     {
-        $data = $this->data;
+        $data = parent::toArray();
 
         if (isset($data['TeslimatAdresi']) && $data['TeslimatAdresi'] instanceof DeliveryAddressModel) {
             $data['TeslimatAdresi'] = $data['TeslimatAdresi']->toArray();

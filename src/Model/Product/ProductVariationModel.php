@@ -73,7 +73,7 @@ class ProductVariationModel
 
     /**
      * Convert the product variation to an array for API requests.
-     * @return array|false
+     * @return array
      */
     public function toArray(): array
     {

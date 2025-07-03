@@ -2,22 +2,19 @@
 
 declare(strict_types=1);
 
-namespace AlperRagib\Ticimax\Model\Supplier;
-
-use AlperRagib\Ticimax\Model\BaseModel;
+namespace AlperRagib\Ticimax\Model;
 
 /**
- * Class SupplierModel
- * Represents a supplier in the Ticimax system.
+ * Base model class for all models in the system
  */
-class SupplierModel extends BaseModel
+abstract class BaseModel
 {
     /** @var array */
     protected array $data = [];
 
     /**
-     * SupplierModel constructor.
-     * @param array|object $data (should use original API/source field names)
+     * BaseModel constructor.
+     * @param array|object $data
      */
     public function __construct($data = [])
     {
@@ -26,10 +23,8 @@ class SupplierModel extends BaseModel
 
     /**
      * Convert data to array recursively.
-     * @param mixed $data
-     * @return mixed
      */
-    private function convertToArray($data)
+    protected function convertToArray($data)
     {
         if (is_array($data)) {
             return array_map([$this, 'convertToArray'], $data);
@@ -39,14 +34,11 @@ class SupplierModel extends BaseModel
             return $this->convertToArray((array) $data);
         }
 
-        // Return primitive values as-is
         return $data;
     }
 
     /**
      * Magic getter method.
-     * @param string $name
-     * @return mixed
      */
     public function __get(string $name)
     {
@@ -55,8 +47,6 @@ class SupplierModel extends BaseModel
 
     /**
      * Magic setter method.
-     * @param string $name
-     * @param mixed $value
      */
     public function __set(string $name, $value): void
     {
@@ -65,8 +55,8 @@ class SupplierModel extends BaseModel
 
     /**
      * Check if a property exists.
-     * @param string $name
-     * @return bool
+     * @param string $name Property name to check
+     * @return bool True if the property exists, false otherwise
      */
     public function __isset(string $name): bool
     {
@@ -74,11 +64,10 @@ class SupplierModel extends BaseModel
     }
 
     /**
-     * Convert the supplier to an array for API requests.
-     * @return array
+     * Convert the model to an array.
      */
     public function toArray(): array
     {
         return $this->data;
     }
-}
+} 

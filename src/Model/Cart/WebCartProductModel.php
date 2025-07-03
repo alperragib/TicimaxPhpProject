@@ -4,80 +4,57 @@ declare(strict_types=1);
 
 namespace AlperRagib\Ticimax\Model\Cart;
 
+use AlperRagib\Ticimax\Model\BaseModel;
+
 /**
  * Class WebCartProductModel
  * Represents a web cart product in the Ticimax system.
  */
-class WebCartProductModel
+class WebCartProductModel extends BaseModel
 {
-    /** @var array */
-    protected array $data = [];
 
     /**
-     * WebCartProductModel constructor.
-     * @param array|object $data (should use original API/source field names)
+     * Get product quantity
+     * @return int
      */
-    public function __construct($data = [])
+    public function getQuantity(): int
     {
-        $arr = $this->convertToArray($data);
-        $this->data = $arr;
+        return (int)($this->data['Adet'] ?? 0);
     }
 
     /**
-     * Convert data to array recursively.
-     * @param mixed $data
-     * @return mixed
+     * Set product quantity
+     * @param int $quantity
      */
-    private function convertToArray($data)
+    public function setQuantity(int $quantity): void
     {
-        if (is_array($data)) {
-            return array_map([$this, 'convertToArray'], $data);
-        }
-
-        if (is_object($data)) {
-            return $this->convertToArray((array) $data);
-        }
-
-        // Return primitive values as-is
-        return $data;
+        $this->data['Adet'] = $quantity;
     }
 
     /**
-     * Magic getter method.
-     * @param string $name
-     * @return mixed
+     * Get product price
+     * @return float
      */
-    public function __get(string $name)
+    public function getPrice(): float
     {
-        return $this->data[$name] ?? null;
+        return (float)($this->data['Fiyat'] ?? 0.0);
     }
 
     /**
-     * Magic setter method.
-     * @param string $name
-     * @param mixed $value
+     * Get product ID
+     * @return int|null
      */
-    public function __set(string $name, $value): void
+    public function getProductId(): ?int
     {
-        $this->data[$name] = $value;
+        return isset($this->data['UrunID']) ? (int)$this->data['UrunID'] : null;
     }
 
     /**
-     * Check if a property exists.
-     * @param string $name
-     * @return bool
+     * Get product name
+     * @return string|null
      */
-    public function __isset(string $name): bool
+    public function getProductName(): ?string
     {
-        return isset($this->data[$name]);
-    }
-
-    /**
-     * Returns the data as-is, using original field names only.
-     */
-    public function toArray(): array
-    {
-        $data = $this->data;
-        return $data;
+        return $this->data['UrunAdi'] ?? null;
     }
 } 
