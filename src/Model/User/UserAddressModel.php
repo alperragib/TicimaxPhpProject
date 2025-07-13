@@ -8,7 +8,7 @@ namespace AlperRagib\Ticimax\Model\User;
  * Class UserAddressModel
  * Represents a user address in the Ticimax system.
  */
-class UserAddressModel
+class UserAddressModel 
 {
     /** @var array */
     protected array $data = [];

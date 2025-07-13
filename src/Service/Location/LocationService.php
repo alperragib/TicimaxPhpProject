@@ -1,24 +1,23 @@
 <?php
 
-namespace TicimaxApi\Service\Location;
+namespace AlperRagib\Ticimax\Service\Location;
 
-use TicimaxApi\Model\Location\CountryModel;
-use TicimaxApi\Model\Location\CityModel;
-use TicimaxApi\Model\Location\DistrictModel;
-use TicimaxApi\Model\Response\ApiResponse;
-use TicimaxApi\TicimaxHelpers;
+use AlperRagib\Ticimax\Model\Location\CountryModel;
+use AlperRagib\Ticimax\Model\Location\CityModel;
+use AlperRagib\Ticimax\Model\Location\DistrictModel;
+use AlperRagib\Ticimax\Model\Response\ApiResponse;
+use AlperRagib\Ticimax\TicimaxHelpers;
+use AlperRagib\Ticimax\TicimaxRequest;
 
 class LocationService
 {
-    private $client;
-    private $memberCode;
+    private TicimaxRequest $request;
+    private string $apiUrl = "/Servis/CustomServis.svc?singleWsdl";
 
-    public function __construct($client, $memberCode)
+    public function __construct(TicimaxRequest $request)
     {
-        $this->client = $client;
-        $this->memberCode = $memberCode;
+        $this->request = $request;
     }
-
     /**
      * Get list of countries
      * 
@@ -28,21 +27,33 @@ class LocationService
      */
     public function getCountries(?int $countryId = null, ?string $countryCode = null): ApiResponse
     {
+        $client = $this->request->soap_client($this->apiUrl);
+        
         $request = [
             'FiltreUlkeID' => $countryId ?? -1,
             'FiltreUlkeKodu' => $countryCode ?? ''
         ];
 
         try {
-            $response = $this->client->SelectUlkeler($this->memberCode, $request);
-            
+            $response = $client->__soapCall("SelectUlkeler", [
+                [
+                    'UyeKodu' => $this->request->key,
+                    'SelectRequest' => (object)$request,
+                ]
+            ]);
+
             if (!$response || !isset($response->SelectUlkelerResult)) {
                 return new ApiResponse(false, 'No countries found', []);
             }
 
             $countries = [];
-            foreach ($response->SelectUlkelerResult as $country) {
-                $countries[] = new CountryModel(TicimaxHelpers::objectToArray($country));
+            $ulkeler = $response->SelectUlkelerResult->KargoUlke ?? [];
+            if (is_object($ulkeler)) {
+                $ulkeler = [$ulkeler];
+            }
+            
+            foreach ($ulkeler as $country) {
+                $countries[] = new CountryModel($country);
             }
 
             return new ApiResponse(true, 'Countries retrieved successfully', $countries);
@@ -60,20 +71,32 @@ class LocationService
      */
     public function getCities(?int $cityId = null, ?int $countryId = null): ApiResponse
     {
+        $client = $this->request->soap_client($this->apiUrl);
+        
         $request = [
             'FiltreIlID' => $cityId ?? -1,
             'FiltreUlkeID' => $countryId ?? -1
         ];
 
         try {
-            $response = $this->client->SelectIller($this->memberCode, $request);
+            $response = $client->__soapCall("SelectIller", [
+                [
+                    'UyeKodu' => $this->request->key,
+                    'SelectRequest' => (object)$request,
+                ]
+            ]);
             
             if (!$response || !isset($response->SelectIllerResult)) {
                 return new ApiResponse(false, 'No cities found', []);
             }
 
             $cities = [];
-            foreach ($response->SelectIllerResult as $city) {
+            $iller = $response->SelectIllerResult->KargoIl ?? [];
+            if (is_object($iller)) {
+                $iller = [$iller];
+            }
+            
+            foreach ($iller as $city) {
                 $cities[] = new CityModel(TicimaxHelpers::objectToArray($city));
             }
 
@@ -92,20 +115,32 @@ class LocationService
      */
     public function getDistricts(?int $districtId = null, ?int $cityId = null): ApiResponse
     {
+        $client = $this->request->soap_client($this->apiUrl);
+        
         $request = [
             'FiltreIlceID' => $districtId ?? -1,
             'FiltreIlID' => $cityId ?? -1
         ];
 
         try {
-            $response = $this->client->SelectIlceler($this->memberCode, $request);
+            $response = $client->__soapCall("SelectIlceler", [
+                [
+                    'UyeKodu' => $this->request->key,
+                    'SelectRequest' => (object)$request,
+                ]
+            ]);
             
             if (!$response || !isset($response->SelectIlcelerResult)) {
                 return new ApiResponse(false, 'No districts found', []);
             }
 
             $districts = [];
-            foreach ($response->SelectIlcelerResult as $district) {
+            $ilceler = $response->SelectIlcelerResult->KargoIlce ?? [];
+            if (is_object($ilceler)) {
+                $ilceler = [$ilceler];
+            }
+            
+            foreach ($ilceler as $district) {
                 $districts[] = new DistrictModel(TicimaxHelpers::objectToArray($district));
             }
 
@@ -114,4 +149,48 @@ class LocationService
             return new ApiResponse(false, $e->getMessage(), []);
         }
     }
+
+    /**
+     * Get shipping companies
+     * 
+     * @return ApiResponse
+     */
+    public function getShippingCompanies(): ApiResponse
+    {
+        $client = $this->request->soap_client($this->apiUrl);
+
+        try {
+            $response = $client->__soapCall("SelectKargoFirmalari", [
+                [
+                    'UyeKodu' => $this->request->key,
+                ]
+            ]);
+
+            if (!$response || !isset($response->SelectKargoFirmalariResult)) {
+                return new ApiResponse(false, 'No shipping companies found', []);
+            }
+
+            $companies = [];
+            $kargoFirmalari = $response->SelectKargoFirmalariResult->KargoFirma ?? [];
+            if (is_object($kargoFirmalari)) {
+                $kargoFirmalari = [$kargoFirmalari];
+            }
+            
+            foreach ($kargoFirmalari as $company) {
+                $companies[] = [
+                    'ID' => $company->ID ?? null,
+                    'FirmaAdi' => $company->FirmaAdi ?? null,
+                    'FirmaKodu' => $company->FirmaKodu ?? null,
+                    'Aktif' => $company->Aktif ?? false,
+                    'Website' => $company->Website ?? null,
+                    'TakipURL' => $company->TakipURL ?? null
+                ];
+            }
+
+            return new ApiResponse(true, 'Shipping companies retrieved successfully', $companies);
+        } catch (\Exception $e) {
+            return new ApiResponse(false, $e->getMessage(), []);
+        }
+    }
+    
 } 

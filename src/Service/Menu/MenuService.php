@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AlperRagib\Ticimax\Service\Menu;
 
 use AlperRagib\Ticimax\Model\Menu\MenuModel;
+use AlperRagib\Ticimax\Model\Response\ApiResponse;
 use AlperRagib\Ticimax\TicimaxRequest;
 use SoapFault;
 
@@ -25,9 +26,9 @@ class MenuService
     /**
      * Get menus from the API
      * @param array $filters Optional filters (Aktif, Dil, MenuID)
-     * @return array Returns ['success' => bool, 'message' => string, 'data' => array]
+     * @return ApiResponse
      */
-    public function getMenus(array $filters = []): array
+    public function getMenus(array $filters = []): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         
@@ -52,17 +53,13 @@ class MenuService
 
                 // Check for API error
                 if ($result->IsError ?? false) {
-                    return [
-                        'success' => false,
-                        'message' => $result->ErrorMessage ?? 'Unknown error occurred',
-                        'data' => []
-                    ];
+                    return ApiResponse::error($result->ErrorMessage ?? 'Bilinmeyen bir hata oluştu');
                 }
 
                 // Process menus
                 $menus = [];
-                if (isset($result->Menuler)) {
-                    $menuData = $result->Menuler;
+                if (isset($result->Menuler->WebMenu)) {
+                    $menuData = $result->Menuler->WebMenu;
                     
                     // Convert single object to array if needed
                     if (is_object($menuData)) {
@@ -74,25 +71,14 @@ class MenuService
                     }
                 }
 
-                return [
-                    'success' => true,
-                    'message' => 'Menus retrieved successfully',
-                    'data' => $menus
-                ];
+                return ApiResponse::success($menus, 'Menüler başarıyla getirildi.');
             }
 
-            return [
-                'success' => true,
-                'message' => 'No menus found',
-                'data' => []
-            ];
+            return ApiResponse::success([], 'Menü bulunamadı.');
 
         } catch (SoapFault $e) {
-            return [
-                'success' => false,
-                'message' => 'Error retrieving menus: ' . $e->getMessage(),
-                'data' => []
-            ];
+            return ApiResponse::error('Menüler getirilirken bir hata oluştu: ' . $e->getMessage());
         }
     }
+    
 } 

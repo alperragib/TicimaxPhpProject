@@ -10,6 +10,9 @@ use AlperRagib\Ticimax\Service\Category\CategoryService;
 use AlperRagib\Ticimax\Service\User\UserService;
 use AlperRagib\Ticimax\Service\FavouriteProduct\FavouriteProductService;
 use AlperRagib\Ticimax\Service\Cart\CartService;
+use AlperRagib\Ticimax\Service\Location\LocationService;
+use AlperRagib\Ticimax\Service\Menu\MenuService;
+use AlperRagib\Ticimax\Service\Shipping\ShippingService;
 
 class Ticimax
 {
@@ -26,6 +29,9 @@ class Ticimax
 	private $userService                  = null;
 	private $favouriteProductService      = null;
 	private $cartService                  = null;
+	private $locationService              = null;
+	private $menuService                  = null;
+	private $shippingService              = null;
 
 	function __construct($main_domain, $key)
 	{
@@ -102,5 +108,29 @@ class Ticimax
 			$this->cartService = new CartService($this->request);
 		}
 		return $this->cartService;
+	}
+
+	function locationService()
+	{
+		if ($this->locationService === null) {
+			$this->locationService = new LocationService($this->request);
+		}
+		return $this->locationService;
+	}
+
+	function menuService()
+	{
+		if ($this->menuService === null) {
+			$this->menuService = new MenuService($this->request);
+		}
+		return $this->menuService;
+	}
+
+	function shippingService()
+	{
+		if ($this->shippingService === null) {
+			$this->shippingService = new ShippingService($this->request);
+		}
+		return $this->shippingService;
 	}
 }

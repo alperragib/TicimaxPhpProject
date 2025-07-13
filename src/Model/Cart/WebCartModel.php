@@ -13,6 +13,17 @@ use AlperRagib\Ticimax\Model\Cart\WebCartProductModel;
  */
 class WebCartModel extends BaseModel
 {
+    /**
+     * Magic getter override for Urunler property
+     */
+    public function __get(string $name)
+    {
+        if ($name === 'Urunler') {
+            return $this->getProducts();
+        }
+        
+        return parent::__get($name);
+    }
    
     /**
      * Get cart products

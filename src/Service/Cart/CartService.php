@@ -6,6 +6,7 @@ namespace AlperRagib\Ticimax\Service\Cart;
 
 use AlperRagib\Ticimax\Model\Cart\WebCartModel;
 use AlperRagib\Ticimax\Model\Cart\WebCartProductModel;
+use AlperRagib\Ticimax\Model\Response\ApiResponse;
 use AlperRagib\Ticimax\TicimaxRequest;
 use SoapFault;
 
@@ -28,9 +29,9 @@ class CartService
      * @param int $userId User ID
      * @param int|null $cartId Cart ID (optional, null if not provided)
      * @param int $campaignId Campaign ID (optional)
-     * @return WebCartModel|null Returns cart data or null on error
+     * @return ApiResponse
      */
-    public function getSepet(int $userId, ?int $cartId = null, int $campaignId = 0): ?WebCartModel
+    public function getSepet(int $userId, ?int $cartId = null, int $campaignId = 0): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
 
@@ -51,21 +52,16 @@ class CartService
             if (isset($response->GetSepetResult)) {
                 $result = $response->GetSepetResult;
                 
-                // Convert products to WebCartProductModel objects
-                $urunler = [];
-                if (isset($result->Urunler) && $result->Urunler !== null) {
-                    $urunlerData = $result->Urunler;
+                // Raw ürün datası geç (BaseModel convertToArray ile handle edilecek)
+                $urunlerRaw = [];
+                if (isset($result->Urunler->ServisSepetUrun)) {
+                    $urunlerData = $result->Urunler->ServisSepetUrun;
                     
-                    if (is_object($urunlerData)) {
-                        $urunlerData = [$urunlerData];
-                    }
-                    
-                    if (is_array($urunlerData)) {
-                        foreach ($urunlerData as $urun) {
-                            if (isset($urun) && $urun !== null) {
-                                $urunler[] = new WebCartProductModel($urun);
-                            }
-                        }
+                    // Tek ürün object ise array'e çevir
+                    if (is_object($urunlerData) && !is_array($urunlerData)) {
+                        $urunlerRaw = [$urunlerData];
+                    } else if (is_array($urunlerData)) {
+                        $urunlerRaw = $urunlerData;
                     }
                 }
                 
@@ -76,28 +72,26 @@ class CartService
                     'ToplamKDV' => $result->ToplamKDV ?? 0,
                     'ToplamUrunAdedi' => $result->ToplamUrunAdedi ?? 0,
                     'SepetParaBirimiDilKodu' => $result->SepetParaBirimiDilKodu ?? null,
-                    'Urunler' => $urunler,
+                    'Urunler' => $urunlerRaw,
                 ];
                 
-                return new WebCartModel($cartData);
+                $cart = new WebCartModel($cartData);
+                return ApiResponse::success($cart, 'Sepet başarıyla getirildi.');
             }
+            
+            return ApiResponse::error('Sepet bulunamadı.');
+            
         } catch (SoapFault $e) {
-            return [
-                'IsError' => true,
-                'ErrorMessage' => 'Error retrieving cart information: ' . $e->getMessage(),
-                'Data' => null
-            ];
+            return ApiResponse::error('Sepet getirilirken bir hata oluştu: ' . $e->getMessage());
         }
-
-        return null;
     }
 
     /**
      * Create cart (CreateSepet).
      * @param int $userId User ID
-     * @return WebCartModel|null Returns created cart data or null on error
+     * @return ApiResponse
      */
-    public function createSepet(int $userId): ?WebCartModel
+    public function createSepet(int $userId): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
 
@@ -116,41 +110,40 @@ class CartService
             if (isset($response->CreateSepetResult)) {
                 $result = $response->CreateSepetResult;
                 
-                // Convert products to WebCartProductModel objects
-                $urunler = [];
-                if (isset($result->Urunler) && $result->Urunler !== null) {
-                    $urunlerData = $result->Urunler;
-                    
-                    if (is_object($urunlerData)) {
-                        $urunlerData = [$urunlerData];
-                    }
-                    
-                    if (is_array($urunlerData)) {
-                        foreach ($urunlerData as $urun) {
-                            if (isset($urun) && $urun !== null) {
-                                $urunler[] = new WebCartProductModel($urun);
-                            }
-                        }
-                    }
-                }
-                
-                $cartData = [
-                    'ID' => $result->SepetID ?? null,
-                    'UyeID' => $result->OverrateSahipId ?? null,
-                    'GenelToplam' => $result->GenelToplam ?? 0,
-                    'ToplamKDV' => $result->ToplamKDV ?? 0,
-                    'ToplamUrunAdedi' => $result->ToplamUrunAdedi ?? 0,
+                // ServisSepet response'unu direkt kullan (XML şemaya uygun)
+                $servisSepet = [
+                    'GenelKDVToplam' => $result->GenelKDVToplam ?? 0.0,
+                    'GenelToplam' => $result->GenelToplam ?? 0.0,
+                    'HediyeCekiKodu' => $result->HediyeCekiKodu ?? null,
+                    'HediyeCekiTutari' => $result->HediyeCekiTutari ?? 0.0,
+                    'HediyeCekiZubizuKampanyaId' => $result->HediyeCekiZubizuKampanyaId ?? 0,
+                    'HediyePaketiTutari' => $result->HediyePaketiTutari ?? 0.0,
+                    'HopiIndirimi' => $result->HopiIndirimi ?? 0.0,
+                    'HopiParacikKullanimi' => $result->HopiParacikKullanimi ?? 0.0,
+                    'IndirimlerToplami' => $result->IndirimlerToplami ?? 0.0,
+                    'KampanyaID' => $result->KampanyaID ?? 0,
+                    'KampanyaIndirimKDV' => $result->KampanyaIndirimKDV ?? 0.0,
+                    'KampanyaIndirimTutari' => $result->KampanyaIndirimTutari ?? 0.0,
+                    'KampanyasizUrunlerToplami' => $result->KampanyasizUrunlerToplami ?? 0.0,
+                    'OverrateSahipId' => $result->OverrateSahipId ?? 0,
+                    'SahipID' => $result->SahipID ?? null,
+                    'SepetID' => $result->SepetID ?? 0,
                     'SepetParaBirimiDilKodu' => $result->SepetParaBirimiDilKodu ?? null,
-                    'Urunler' => $urunler,
+                    'ToplamKDV' => $result->ToplamKDV ?? 0.0,
+                    'ToplamTutar' => $result->ToplamTutar ?? 0.0,
+                    'ToplamUrunAdedi' => $result->ToplamUrunAdedi ?? 0.0,
+                    'UrunOzellestirmeFiyatlari' => $result->UrunOzellestirmeFiyatlari ?? 0.0,
+                    'Urunler' => $result->Urunler ?? null
                 ];
                 
-                return new WebCartModel($cartData);
+                return ApiResponse::success($servisSepet, 'Sepet başarıyla oluşturuldu.');
             }
+            
+            return ApiResponse::error('Sepet oluşturulamadı.');
+            
         } catch (SoapFault $e) {
-            // Handle error or log
+            return ApiResponse::error('Sepet oluşturulurken bir hata oluştu: ' . $e->getMessage());
         }
-
-        return null;
     }
 
     /**
@@ -162,9 +155,9 @@ class CartService
      * @param bool $updateQuantity Whether to update quantity (default: false)
      * @param bool $removeFromCart Whether to remove from cart (default: false)
      * @param int $campaignId Campaign ID (optional)
-     * @return array Returns ['success' => bool, 'message' => string, 'data' => array]
+     * @return ApiResponse
      */
-    public function updateCart(int $cartId, int $cartProductId, int $productId, float $quantity = 1.0, bool $updateQuantity = false, bool $removeFromCart = false, int $campaignId = 0): array
+    public function updateCart(int $cartId, int $cartProductId, int $productId, float $quantity = 1.0, bool $updateQuantity = false, bool $removeFromCart = false, int $campaignId = 0): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
 
@@ -179,41 +172,36 @@ class CartService
                 'KampanyaID' => $campaignId,
             ];
 
+            // Fix: Object casting sorunu - manuel object creation
+            $requestObject = new \stdClass();
+            $requestObject->SepetID = $requestData['SepetID'];
+            $requestObject->SepetUrunID = $requestData['SepetUrunID'];
+            $requestObject->UrunID = $requestData['UrunID'];
+            $requestObject->Adet = $requestData['Adet'];
+            $requestObject->AdetGuncelle = $requestData['AdetGuncelle'];
+            $requestObject->SepettenCikar = $requestData['SepettenCikar'];
+            $requestObject->KampanyaID = $requestData['KampanyaID'];
+            
             $response = $client->__soapCall("UpdateSepet", [
                 [
                     'UyeKodu' => $this->request->key,
-                    'request' => (object)$requestData,
+                    'request' => $requestObject,
                 ]
             ]);
 
             if (isset($response->UpdateSepetResult)) {
                 $result = $response->UpdateSepetResult;
-                if ($result->IsError ?? true) {
-                    return [
-                        'success' => false,
-                        'message' => $result->ErrorMessage ?? 'Unknown error occurred',
-                        'data' => []
-                    ];
+                if (($result->IsError ?? false) === true) {
+                    return ApiResponse::error($result->ErrorMessage ?? 'Bilinmeyen bir hata oluştu');
                 }
-                return [
-                    'success' => true,
-                    'message' => 'Cart updated successfully',
-                    'data' => []
-                ];
+                return ApiResponse::success($result, 'Sepet başarıyla güncellendi.');
             }
+            
+            return ApiResponse::error('Sepet güncellenemedi.');
+            
         } catch (SoapFault $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to update cart: ' . $e->getMessage(),
-                'data' => []
-            ];
+            return ApiResponse::error('Sepet güncellenirken bir hata oluştu: ' . $e->getMessage());
         }
-
-        return [
-            'success' => false,
-            'message' => 'Failed to update cart',
-            'data' => []
-        ];
     }
 
     /**
@@ -228,51 +216,65 @@ class CartService
      * @return array Returns ['success' => bool, 'message' => string, 'data' => array]
      */
     public function selectSepet(
-        ?int $sepetId = -1,
-        ?int $uyeId = -1,
+        ?int $sepetId = null,
+        ?int $uyeId = null,
         ?string $baslangicTarihi = null,
         ?string $bitisTarihi = null,
         ?int $sayfaSayisi = null,
         ?string $guidSepetId = null
-    ): array {
+    ): ApiResponse {
+        $client = $this->request->soap_client($this->apiUrl);
+        
         try {
-            // Tarihleri kontrol et ve varsayılan değerleri ayarla
-            $baslangicTarihi = $baslangicTarihi ? date('Y-m-d', strtotime($baslangicTarihi)) : date('Y-m-d', strtotime('-30 days'));
-            $bitisTarihi = $bitisTarihi ? date('Y-m-d', strtotime($bitisTarihi)) : date('Y-m-d');
-
-            $params = [
-                'UyeKodu' => $this->request->key,
-                'sepetId' => $sepetId,
-                'uyeId' => $uyeId,
-                'BaslangicTarihi' => $baslangicTarihi,
-                'BitisTarihi' => $bitisTarihi,
-                'sayfaSayisi' => $sayfaSayisi,
-                'guidSepetId' => $guidSepetId
-            ];
-
-            $response = $this->request->soap_client($this->apiUrl)->__soapCall("SelectSepet", [$params]);
-            $result = $response->SelectSepetResult ?? null;
-
-            if ($result && isset($result->Sepetler) && is_array($result->Sepetler)) {
-                return [
-                    'success' => true,
-                    'message' => 'Cart list retrieved successfully',
-                    'data' => $result->Sepetler
-                ];
+            // DateTime formatını kontrol et (XML şema dateTime istiyor)
+            $startDate = null;
+            $endDate = null;
+            
+            if ($baslangicTarihi) {
+                $startDate = date('c', strtotime($baslangicTarihi)); // ISO 8601 format
+            }
+            if ($bitisTarihi) {
+                $endDate = date('c', strtotime($bitisTarihi)); // ISO 8601 format  
             }
 
-            return [
-                'success' => true,
-                'message' => 'No carts found',
-                'data' => []
-            ];
+            $response = $client->__soapCall("SelectSepet", [
+                [
+                    'UyeKodu' => $this->request->key,
+                    'sepetId' => $sepetId,
+                    'uyeId' => $uyeId,
+                    'BaslangicTarihi' => $startDate,
+                    'BitisTarihi' => $endDate,
+                    'sayfaSayisi' => $sayfaSayisi,
+                    'guidSepetId' => $guidSepetId
+                ]
+            ]);
+            
+            $result = $response->SelectSepetResult ?? null;
+
+            if ($result && isset($result->Sepetler)) {
+                $sepetler = $result->Sepetler->WebSepet ?? [];
+                if (is_object($sepetler)) {
+                    $sepetler = [$sepetler];
+                }
+                
+                $carts = [];
+                foreach ($sepetler as $sepet) {
+                    $carts[] = new WebCartModel($sepet);
+                }
+                
+                return ApiResponse::success([
+                    'carts' => $carts,
+                    'hasNext' => $result->Next ?? false
+                ], 'Sepet listesi başarıyla getirildi.');
+            }
+
+            return ApiResponse::success(
+                [],
+               
+            );
 
         } catch (SoapFault $e) {
-            return [
-                'success' => false,
-                'message' => 'Error retrieving cart list: ' . $e->getMessage(),
-                'data' => []
-            ];
+            return ApiResponse::error('Sepet listesi getirilirken bir hata oluştu: ' . $e->getMessage());
         }
     }
 
@@ -283,14 +285,14 @@ class CartService
      * @param string|null $paraBirimi Currency code
      * @param int|null $sepetId Cart ID
      * @param int|null $uyeId User ID
-     * @return array Returns ['success' => bool, 'message' => string, 'data' => array]
+     * @return ApiResponse
      */
     public function selectWebSepet(
         ?string $dil = null,
         ?string $paraBirimi = null,
         ?int $sepetId = null,
         ?int $uyeId = null
-    ): array {
+    ): ApiResponse {
         try {
             $requestData = [
                 'Dil' => $dil ?? '',
@@ -307,25 +309,13 @@ class CartService
             ]);
 
             if (isset($response->SelectWebSepetResult) && isset($response->SelectWebSepetResult->Sepetler)) {
-                return [
-                    'success' => true,
-                    'message' => 'Cart information retrieved successfully',
-                    'data' => $response->SelectWebSepetResult->Sepetler
-                ];
+                return ApiResponse::success($response->SelectWebSepetResult->Sepetler, 'Sepet bilgileri başarıyla getirildi.');
             }
 
-            return [
-                'success' => true,
-                'message' => 'No carts found',
-                'data' => []
-            ];
+            return ApiResponse::success([], 'Sepet bulunamadı.');
 
         } catch (SoapFault $e) {
-            return [
-                'success' => false,
-                'message' => 'Error retrieving web cart information: ' . $e->getMessage(),
-                'data' => []
-            ];
+            return ApiResponse::error('Web sepet bilgileri getirilirken bir hata oluştu: ' . $e->getMessage());
         }
     }
 }

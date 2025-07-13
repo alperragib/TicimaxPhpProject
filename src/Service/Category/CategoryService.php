@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AlperRagib\Ticimax\Service\Category;
 
 use AlperRagib\Ticimax\Model\Category\CategoryModel;
+use AlperRagib\Ticimax\Model\Response\ApiResponse;
 use AlperRagib\Ticimax\TicimaxRequest;
 use SoapFault;
 
@@ -65,8 +66,9 @@ class CategoryService
     /**
      * Create a new category via the API.
      * @param CategoryModel $category
+     * @return ApiResponse
      */
-    public function createCategory(CategoryModel $category)
+    public function createCategory(CategoryModel $category): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         try {
@@ -77,9 +79,14 @@ class CategoryService
             $response = $client->__soapCall("SaveKategori", [
                 'parameters' => $params
             ]);
-            return $response->SaveKategoriResult;
+            
+            if (isset($response->SaveKategoriResult)) {
+                return ApiResponse::success($response->SaveKategoriResult, 'Kategori başarıyla kaydedildi.');
+            }
+            
+            return ApiResponse::error('Kategori kaydedilemedi.');
         } catch (SoapFault $e) {
-            return $e->getMessage();
+            return ApiResponse::error('Kategori kaydedilirken bir hata oluştu: ' . $e->getMessage());
         }
     }
 }

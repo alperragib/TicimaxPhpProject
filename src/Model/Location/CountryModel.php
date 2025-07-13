@@ -17,11 +17,11 @@ class CountryModel extends BaseModel
 
     public function getName(): ?string
     {
-        return $this->data['Tanim'] ?? null;
+        return $this->data['UlkeAdi'] ?? $this->data['Tanim'] ?? null;
     }
 
     public function getCountryCode(): ?string 
     {
-        return $this->data['FiltreUlkeKodu'] ?? null;
+        return $this->data['UlkeKodu'] ?? $this->data['FiltreUlkeKodu'] ?? null;
     }
 } 

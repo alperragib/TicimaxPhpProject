@@ -237,14 +237,14 @@ class OrderService
         $client = $this->request->soap_client($this->apiUrl);
         
         try {
-            $params = [
-                'UyeKodu' => $this->request->key,
-                'siparisId' => $siparisId,
-                'odemeId' => $odemeId,
-                'isAktarildi' => $isAktarildi
-            ];
-
-            $response = $client->__soapCall("SelectSiparisOdeme", [$params]);
+            $response = $client->__soapCall("SelectSiparisOdeme", [
+                [
+                    'UyeKodu' => $this->request->key,
+                    'siparisId' => $siparisId,
+                    'odemeId' => $odemeId,
+                    'isAktarildi' => $isAktarildi
+                ]
+            ]);
             
             if (isset($response->SelectSiparisOdemeResult->WebSiparisOdeme)) {
                 $odemeler = $response->SelectSiparisOdemeResult->WebSiparisOdeme;
@@ -306,13 +306,13 @@ class OrderService
         $client = $this->request->soap_client($this->apiUrl);
         
         try {
-            $params = [
-                'UyeKodu' => $this->request->key,
-                'siparisId' => $siparisId,
-                'iptalEdilmisUrunler' => $iptalEdilmisUrunler
-            ];
-
-            $response = $client->__soapCall("SelectSiparisUrun", [$params]);
+            $response = $client->__soapCall("SelectSiparisUrun", [
+                [
+                    'UyeKodu' => $this->request->key,
+                    'siparisId' => $siparisId,
+                    'iptalEdilmisUrunler' => $iptalEdilmisUrunler
+                ]
+            ]);
             
             if (isset($response->SelectSiparisUrunResult->WebSiparisUrun)) {
                 $urunler = $response->SelectSiparisUrunResult->WebSiparisUrun;
@@ -383,17 +383,22 @@ class OrderService
      */
     public function setOrderTransferred(int $orderId): bool
     {
-        $client = $this->request->soap_client('/Servis/SiparisServis.svc');
+        $client = $this->request->soap_client($this->apiUrl);
         
-        $params = [
-            'UyeKodu' => $this->request->getApiKey(),
-            'siparisId' => $orderId
-        ];
-
-        $response = $client->SetSiparisAktarildi($params);
-        
-        // The API returns an empty response on success
-        return true;
+        try {
+            $response = $client->__soapCall("SetSiparisAktarildi", [
+                [
+                    'UyeKodu' => $this->request->key,
+                    'siparisId' => $orderId
+                ]
+            ]);
+            
+            // The API returns an empty response on success
+            return true;
+        } catch (SoapFault $e) {
+            // Handle error or log
+            return false;
+        }
     }
 
     /**
@@ -404,16 +409,21 @@ class OrderService
      */
     public function cancelOrderTransferred(int $orderId): bool
     {
-        $client = $this->request->soap_client('/Servis/SiparisServis.svc');
+        $client = $this->request->soap_client($this->apiUrl);
         
-        $params = [
-            'UyeKodu' => $this->request->getApiKey(),
-            'siparisId' => $orderId
-        ];
-
-        $response = $client->SetSiparisAktarildiIptal($params);
-        
-        // The API returns an empty response on success
-        return true;
+        try {
+            $response = $client->__soapCall("SetSiparisAktarildiIptal", [
+                [
+                    'UyeKodu' => $this->request->key,
+                    'siparisId' => $orderId
+                ]
+            ]);
+            
+            // The API returns an empty response on success
+            return true;
+        } catch (SoapFault $e) {
+            // Handle error or log
+            return false;
+        }
     }
 }

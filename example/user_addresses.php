@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use AlperRagib\Ticimax\Ticimax;
+use AlperRagib\Ticimax\ApiResponse;
 
 // Configuration
 $config = require __DIR__ . '/config.php';
@@ -37,12 +38,13 @@ $newAddressData = [
     'AdresTarifi' => ''
 ];
 
-$savedAddressId = $userService->saveUserAddress($newAddressData);
+$response = $userService->saveUserAddress($newAddressData);
 
-if ($savedAddressId) {
+if ($response->isSuccess()) {
+    $savedAddressId = $response->getData();
     echo "Address saved successfully! Address ID: $savedAddressId\n";
 } else {
-    echo "Failed to save address.\n";
+    echo "Failed to save address. Error: " . $response->getMessage() . "\n";
 }
 
 echo "\n=== Listing User Addresses ===\n";

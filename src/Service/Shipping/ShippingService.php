@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AlperRagib\Ticimax\Service\Shipping;
 
 use AlperRagib\Ticimax\Model\Shipping\ShippingCompanyModel;
+use AlperRagib\Ticimax\Model\Response\ApiResponse;
 use AlperRagib\Ticimax\TicimaxRequest;
 use SoapFault;
 
@@ -15,7 +16,6 @@ use SoapFault;
 class ShippingService
 {
     private TicimaxRequest $request;
-    private string $apiUrl = "/Servis/SiparisServis.svc?singleWsdl";
 
     public function __construct(TicimaxRequest $request)
     {
@@ -28,9 +28,9 @@ class ShippingService
      * @param int $cityId City ID from the cities table (e.g., 1 = Adana)
      * @param string $currency Currency code (e.g., 'TL')
      * @param object $cart Cart object (ServisSepet) - Required
-     * @return array Returns ['IsError' => bool, 'ErrorMessage' => string, 'Data' => ShippingCompanyModel[]]
+     * @return ApiResponse
      */
-    public function getShippingOptions(int $cityId, string $currency, object $cart): array
+    public function getShippingOptions(int $cityId, string $currency, object $cart): ApiResponse
     {
         try {
             $requestData = [
@@ -39,21 +39,22 @@ class ShippingService
                 'Sepet' => $cart
             ];
 
-            $response = $this->request->soap_client($this->apiUrl)->__soapCall("GetKargoSecenek", [
+            // Use SiparisServis for shipping options (order-related operations)
+            $response = $this->request->soap_client("/Servis/SiparisServis.svc?singleWsdl")->__soapCall("GetKargoSecenek", [
                 [
                     'UyeKodu' => $this->request->key,
                     'request' => (object)$requestData
                 ]
             ]);
 
-            // Debug response
-            echo "Raw SOAP Response:\n";
-            print_r($response);
-            echo "\n";
-
             if (isset($response->GetKargoSecenekResult)) {
                 $shippingCompanies = [];
                 $result = $response->GetKargoSecenekResult;
+                
+                // Check if result is empty
+                if (empty((array)$result)) {
+                    return ApiResponse::success([], 'Bu istek için kargo seçeneği bulunmamaktadır.');
+                }
                 
                 // Handle both single object and array responses
                 if (is_object($result)) {
@@ -61,45 +62,29 @@ class ShippingService
                 } elseif (is_array($result)) {
                     $companies = $result;
                 } else {
-                    return [
-                        'IsError' => true,
-                        'ErrorMessage' => 'Unexpected response format',
-                        'Data' => []
-                    ];
+                    return ApiResponse::error('Beklenmeyen yanıt formatı');
                 }
 
                 foreach ($companies as $company) {
                     $shippingCompanies[] = new ShippingCompanyModel($company);
                 }
 
-                return [
-                    'IsError' => false,
-                    'ErrorMessage' => '',
-                    'Data' => $shippingCompanies
-                ];
+                return ApiResponse::success($shippingCompanies, 'Kargo seçenekleri başarıyla getirildi.');
             }
 
-            return [
-                'IsError' => true,
-                'ErrorMessage' => 'No shipping options found in response',
-                'Data' => []
-            ];
+            return ApiResponse::error('Yanıtta kargo seçeneği bulunamadı.');
 
         } catch (SoapFault $e) {
-            return [
-                'IsError' => true,
-                'ErrorMessage' => 'Error retrieving shipping options: ' . $e->getMessage(),
-                'Data' => []
-            ];
+            return ApiResponse::error('Kargo seçenekleri getirilirken bir hata oluştu: ' . $e->getMessage());
         }
     }
 
     /**
      * Get list of shipping companies
      * 
-     * @return array Returns ['success' => bool, 'message' => string, 'data' => array]
+     * @return ApiResponse
      */
-    public function getShippingCompanies(): array
+    public function getShippingCompanies(): ApiResponse
     {
         $client = $this->request->soap_client("/Servis/CustomServis.svc?singleWsdl");
         
@@ -113,35 +98,40 @@ class ShippingService
             if (isset($response->SelectKargoFirmalariResult)) {
                 $companies = [];
                 $result = $response->SelectKargoFirmalariResult;
+                
+                // Handle KargoFirma structure
+                if (isset($result->KargoFirma)) {
+                    $kargoFirmalari = $result->KargoFirma;
+                    
+                    // Convert single object to array if needed
+                    if (is_object($kargoFirmalari)) {
+                        $kargoFirmalari = [$kargoFirmalari];
+                    }
 
-                // Convert single object to array if needed
-                if (is_object($result)) {
-                    $result = [$result];
+                    foreach ($kargoFirmalari as $company) {
+                        // Map API fields to expected structure
+                        $mappedCompany = [
+                            'ID' => $company->ID ?? null,
+                            'FirmaAdi' => $company->Tanim ?? null,
+                            'FirmaKodu' => $company->FirmaKodu ?? null,
+                            'Aktif' => $company->Aktif ?? true,
+                            'Website' => $company->Website ?? null,
+                            'TakipURL' => $company->TakipURL ?? null,
+                            'EntegrasyonKodu' => $company->EntegrasyonKodu ?? null,
+                            'Logo' => $company->Logo ?? null
+                        ];
+                        
+                        $companies[] = new ShippingCompanyModel($mappedCompany);
+                    }
                 }
 
-                foreach ($result as $company) {
-                    $companies[] = new ShippingCompanyModel($company);
-                }
-
-                return [
-                    'success' => true,
-                    'message' => 'Shipping companies retrieved successfully',
-                    'data' => $companies
-                ];
+                return ApiResponse::success($companies, 'Kargo firmaları başarıyla getirildi.');
             }
 
-            return [
-                'success' => true,
-                'message' => 'No shipping companies found',
-                'data' => []
-            ];
+            return ApiResponse::success([], 'Kargo firması bulunamadı.');
 
         } catch (SoapFault $e) {
-            return [
-                'success' => false,
-                'message' => 'Error retrieving shipping companies: ' . $e->getMessage(),
-                'data' => []
-            ];
+            return ApiResponse::error('Kargo firmaları getirilirken bir hata oluştu: ' . $e->getMessage());
         }
     }
 } 

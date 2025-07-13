@@ -7,6 +7,7 @@ namespace AlperRagib\Ticimax\Service\Product;
 use AlperRagib\Ticimax\Model\Product\ProductModel;
 use AlperRagib\Ticimax\Model\Product\ProductVariationModel;
 use AlperRagib\Ticimax\Model\Category\CategoryModel;
+use AlperRagib\Ticimax\Model\Response\ApiResponse;
 use AlperRagib\Ticimax\TicimaxRequest;
 use SoapFault;
 
@@ -27,9 +28,9 @@ class ProductService
     /**
      * Get payment options for a product variation
      * @param int $varyasyonId Variation ID to get payment options for
-     * @return array Array of payment options with installment details
+     * @return ApiResponse
      */
-    public function SelectUrunOdemeSecenek(int $varyasyonId): array
+    public function SelectUrunOdemeSecenek(int $varyasyonId): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         try {
@@ -75,10 +76,9 @@ class ProductService
                 ];
             }
 
-            return $result;
+            return ApiResponse::success($result, 'Ödeme seçenekleri başarıyla getirildi.');
         } catch (SoapFault $e) {
-            // Handle error or log
-            return [];
+            return ApiResponse::error('Ödeme seçenekleri getirilirken bir hata oluştu: ' . $e->getMessage());
         }
     }
 
@@ -86,21 +86,21 @@ class ProductService
      * Fetch products from the API.
      * @param array $filters
      * @param array $pagination
-     * @return ProductModel[]
+     * @return ApiResponse
      */
-    public function getProducts(array $filters = [], array $pagination = []): array
+    public function getProducts(array $filters = [], array $pagination = []): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         $products = [];
         try {
             $defaultFilters = [
-                'Aktif'       => -1,
-                'Firsat'      => -1,
-                'Indirimli'   => -1,
-                'Vitrin'      => -1,
-                'KategoriID'  => 0,
-                'MarkaID'     => 0,
-                'UrunKartiID' => 0,
+                'Aktif'       => -1,  // int: -1=all, 0=inactive, 1=active
+                'Firsat'      => -1,  // int: -1=all, 0=false, 1=true  
+                'Indirimli'   => -1,  // int: -1=all, 0=false, 1=true
+                'Vitrin'      => -1,  // int: -1=all, 0=false, 1=true
+                'KategoriID'  => 0,   // int: 0=no filter
+                'MarkaID'     => 0,   // int: 0=no filter
+                'UrunKartiID' => 0,   // int: 0=no filter
             ];
             
             $defaultPagination = [
@@ -127,10 +127,12 @@ class ProductService
             foreach ($urunler as $urun) {
                 $products[] = new ProductModel($urun);
             }
+            
+            return ApiResponse::success($products, 'Ürünler başarıyla getirildi.');
+            
         } catch (SoapFault $e) {
-            // Handle error or log
+            return ApiResponse::error('Ürünler getirilirken bir hata oluştu: ' . $e->getMessage());
         }
-        return $products;
     }
 
     /**
@@ -138,9 +140,9 @@ class ProductService
      * @param int $kategoriID Category ID (0 returns all categories)
      * @param string $dil Language code (optional)
      * @param int|null $parentID Parent category ID (optional)
-     * @return CategoryModel[] Array of categories
+     * @return ApiResponse
      */
-    public function SelectKategori(int $kategoriID = 0, string $dil = '', ?int $parentID = null): array
+    public function SelectKategori(int $kategoriID = 0, string $dil = '', ?int $parentID = null): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         $categories = [];
@@ -163,11 +165,12 @@ class ProductService
             foreach ($kategoriler as $kategori) {
                 $categories[] = new CategoryModel($kategori);
             }
+            
+            return ApiResponse::success($categories, 'Kategoriler başarıyla getirildi.');
+            
         } catch (SoapFault $e) {
-            // Handle error or log
+            return ApiResponse::error('Kategoriler getirilirken bir hata oluştu: ' . $e->getMessage());
         }
-        
-        return $categories;
     }
 
     /**
@@ -180,16 +183,16 @@ class ProductService
         $client = $this->request->soap_client($this->apiUrl);
         try {
             $defaultFilters = [
-                'Aktif'              => -1,   // -1: no filter, 0: false, 1: true
-                'Firsat'             => -1,   // -1: no filter, 0: false, 1: true
-                'Indirimli'          => -1,   // -1: no filter, 0: false, 1: true
-                'Vitrin'             => -1,   // -1: no filter, 0: false, 1: true
-                'KategoriID'         => 0,    // 0: no filter
-                'MarkaID'            => 0,    // 0: no filter
-                'UrunKartiID'        => 0,    // 0: no filter
-                'ToplamStokAdediBas' => 0,    // Starting stock amount
-                'ToplamStokAdediSon' => 0,    // Ending stock amount
-                'TedarikciID'        => 0,    // 0: no filter
+                'Aktif'                    => -1,   // -1: no filter, 0: false, 1: true
+                'Firsat'                   => -1,   // -1: no filter, 0: false, 1: true
+                'Indirimli'                => -1,   // -1: no filter, 0: false, 1: true
+                'Vitrin'                   => -1,   // -1: no filter, 0: false, 1: true
+                'KategoriID'               => 0,    // 0: no filter
+                'MarkaID'                  => 0,    // 0: no filter
+                'UrunKartiID'              => 0,    // 0: no filter
+                'ToplamStokAdediBas'       => null, // Starting stock amount (double)
+                'ToplamStokAdediSon'       => null, // Ending stock amount (double)
+                'TedarikciID'              => 0,    // 0: no filter
             ];
 
             $urunFiltre = array_merge($defaultFilters, $filters);
@@ -211,9 +214,9 @@ class ProductService
     /**
      * Get product reviews
      * @param int $urunKartId Product ID to get reviews for
-     * @return array Array of product reviews
+     * @return ApiResponse
      */
-    public function GetProductReviews(int $urunKartId): array
+    public function GetProductReviews(int $urunKartId): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         try {
@@ -243,10 +246,9 @@ class ProductService
                 ];
             }
 
-            return $result;
+            return ApiResponse::success($result, 'Ürün yorumları başarıyla getirildi.');
         } catch (SoapFault $e) {
-            // Handle error or log
-            return [];
+            return ApiResponse::error('Ürün yorumları getirilirken bir hata oluştu: ' . $e->getMessage());
         }
     }
 
@@ -339,9 +341,9 @@ class ProductService
     /**
      * Get stock information for a specific store
      * @param string $storeCode Store code to get stock information for
-     * @return array Standardized response with store stock information
+     * @return ApiResponse
      */
-    public function GetStoreStock(string $storeCode): array
+    public function GetStoreStock(string $storeCode): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         try {
@@ -361,25 +363,13 @@ class ProductService
                 if (is_object($stocks)) {
                     $stocks = [$stocks];
                 }
-                return [
-                    'success' => true,
-                    'message' => 'Mağaza stok bilgileri başarıyla getirildi',
-                    'data' => $stocks
-                ];
+                return ApiResponse::success($stocks, 'Mağaza stok bilgileri başarıyla getirildi.');
             }
             
-            return [
-                'success' => false,
-                'message' => $result->ErrorMessage ?? 'Bilinmeyen bir hata oluştu',
-                'data' => null
-            ];
+            return ApiResponse::error($result->ErrorMessage ?? 'Bilinmeyen bir hata oluştu');
             
         } catch (SoapFault $e) {
-            return [
-                'success' => false,
-                'message' => $e->getMessage(),
-                'data' => null
-            ];
+            return ApiResponse::error('Mağaza stok bilgileri getirilirken bir hata oluştu: ' . $e->getMessage());
         }
     }
 
@@ -387,9 +377,9 @@ class ProductService
      * Update stock quantities for product variations
      * @param array $variations Array of variations with ID and stock quantity
      *                         Each variation should have ['ID' => int, 'StokAdedi' => int]
-     * @return array Standardized response with update result
+     * @return ApiResponse
      */
-    public function UpdateStockQuantity(array $variations): array
+    public function UpdateStockQuantity(array $variations): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         try {
@@ -403,27 +393,16 @@ class ProductService
             $result = $response->StokAdediGuncelleResult ?? -1;
             
             if ($result >= 0) {
-                return [
-                    'success' => true,
-                    'message' => 'Stok miktarları başarıyla güncellendi',
-                    'data' => [
+                return ApiResponse::success([
                         'updatedCount' => $result
-                    ]
-                ];
+                ], 'Stok miktarları başarıyla güncellendi.');
             }
             
-            return [
-                'success' => false,
-                'message' => 'Stok güncellemesi başarısız oldu',
-                'data' => null
-            ];
+            return ApiResponse::error('Stok güncellemesi başarısız oldu');
             
         } catch (SoapFault $e) {
-            return [
-                'success' => false,
-                'message' => $e->getMessage(),
-                'data' => null
-            ];
+            return ApiResponse::error('Stok güncellemesi sırasında bir hata oluştu: ' . $e->getMessage());
         }
     }
+    
 }

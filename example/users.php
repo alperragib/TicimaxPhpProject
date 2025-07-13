@@ -59,12 +59,13 @@ $userSettings = [
     'UyelikTuruGuncelle' => false,
 ];
 
-$savedUserId = $userService->saveUser($newUserData, $userSettings);
+$saveUserResponse = $userService->saveUser($newUserData, $userSettings);
 
-if ($savedUserId) {
-    echo "User saved successfully! User ID: $savedUserId\n";
+if ($saveUserResponse->isSuccess()) {
+    $savedUserId = $saveUserResponse->getData();
+    echo "✓ " . $saveUserResponse->getMessage() . " User ID: $savedUserId\n";
 } else {
-    echo "Failed to save user.\n";
+    echo "✗ " . $saveUserResponse->getMessage() . "\n";
 }
 
 echo "\n=== List Users ===\n";
@@ -105,7 +106,16 @@ $pagination = [
     'SiralamaYonu'    => 'DESC',
 ];
 
-$users = $userService->getUsers($filters, $pagination);
+$usersResponse = $userService->getUsers($filters, $pagination);
+
+// Yeni ApiResponse formatını kontrol edelim
+if ($usersResponse->isSuccess()) {
+    echo "✓ " . $usersResponse->getMessage() . "\n";
+    $users = $usersResponse->getData();
+} else {
+    echo "✗ " . $usersResponse->getMessage() . "\n";
+    $users = [];
+}
 
 foreach ($users as $user) {
     $id = $user->ID ?? '[No ID]';

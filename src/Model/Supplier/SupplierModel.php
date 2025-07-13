@@ -29,7 +29,7 @@ class SupplierModel extends BaseModel
      * @param mixed $data
      * @return mixed
      */
-    private function convertToArray($data)
+    protected function convertToArray($data)
     {
         if (is_array($data)) {
             return array_map([$this, 'convertToArray'], $data);

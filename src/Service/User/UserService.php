@@ -7,6 +7,7 @@ namespace AlperRagib\Ticimax\Service\User;
 use AlperRagib\Ticimax\Model\User\UserModel;
 use AlperRagib\Ticimax\Model\User\LoginResultModel;
 use AlperRagib\Ticimax\Model\User\UserAddressModel;
+use AlperRagib\Ticimax\Model\Response\ApiResponse;
 use AlperRagib\Ticimax\TicimaxRequest;
 use SoapFault;
 
@@ -28,9 +29,9 @@ class UserService
      * Fetch users from the API.
      * @param array $filters
      * @param array $pagination
-     * @return UserModel[]
+     * @return ApiResponse
      */
-    public function getUsers(array $filters = [], array $pagination = []): array
+    public function getUsers(array $filters = [], array $pagination = []): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         $users = [];
@@ -91,10 +92,12 @@ class UserService
             ) {
                 $users[] = new UserModel($uye);
             }
+            
+            return ApiResponse::success($users, 'Kullanıcılar başarıyla getirildi.');
+            
         } catch (SoapFault $e) {
-            // Handle error or log
+            return ApiResponse::error('Kullanıcılar getirilirken bir hata oluştu: ' . $e->getMessage());
         }
-        return $users;
     }
 
     /**
@@ -103,9 +106,9 @@ class UserService
      * @param string $password User password
      * @param string|null $otp One-time password (optional)
      * @param bool $isAdmin Whether this is an admin login
-     * @return LoginResultModel|null
+     * @return ApiResponse
      */
-    public function login(string $email, string $password, ?string $otp = null, bool $isAdmin = false): ?LoginResultModel
+    public function login(string $email, string $password, ?string $otp = null, bool $isAdmin = false): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
 
@@ -127,22 +130,24 @@ class UserService
             ]);
 
             if (isset($response->GirisYapResult)) {
-                return new LoginResultModel($response->GirisYapResult);
+                $loginResult = new LoginResultModel($response->GirisYapResult);
+                return ApiResponse::success($loginResult, 'Giriş başarılı.');
             }
+            
+            return ApiResponse::error('Giriş başarısız.');
+            
         } catch (SoapFault $e) {
-            // Handle error or log
+            return ApiResponse::error('Giriş sırasında bir hata oluştu: ' . $e->getMessage());
         }
-
-        return null;
     }
 
     /**
      * Get user addresses.
      * @param int|null $userId User ID (optional, if not provided will get all addresses)
      * @param int|null $addressId Specific address ID (optional)
-     * @return UserAddressModel[]
+     * @return ApiResponse
      */
-    public function getUserAddresses(?int $userId = null, ?int $addressId = null): array
+    public function getUserAddresses(?int $userId = null, ?int $addressId = null): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         $addresses = [];
@@ -165,19 +170,20 @@ class UserService
             foreach ($uyeAdresler as $adres) {
                 $addresses[] = new UserAddressModel($adres);
             }
+            
+            return ApiResponse::success($addresses, 'Kullanıcı adresleri başarıyla getirildi.');
+            
         } catch (SoapFault $e) {
-            // Handle error or log
+            return ApiResponse::error('Kullanıcı adresleri getirilirken bir hata oluştu: ' . $e->getMessage());
         }
-        
-        return $addresses;
     }
 
     /**
      * Save user address.
      * @param array $addressData Address data array
-     * @return int|null Returns the saved address ID on success, null on failure
+     * @return ApiResponse
      */
-    public function saveUserAddress(array $addressData): ?int
+    public function saveUserAddress(array $addressData): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         
@@ -190,22 +196,26 @@ class UserService
             ]);
 
             if (isset($response->SaveUyeAdresResult)) {
-                return (int)$response->SaveUyeAdresResult;
+                $addressId = (int)$response->SaveUyeAdresResult;
+                return ApiResponse::success($addressId, 'Kullanıcı adresi başarıyla kaydedildi.');
             }
+            
+            return ApiResponse::error('Kullanıcı adresi kaydedilemedi.');
+            
         } catch (SoapFault $e) {
-            // Handle error or log
+            return ApiResponse::error('Kullanıcı adresi kaydedilirken bir hata oluştu: ' . $e->getMessage());
         }
-        
-        return null;
     }
+
+
 
     /**
      * Save user.
      * @param array $userData User data array
      * @param array $userSettings User settings array (optional)
-     * @return int|null Returns the saved user ID on success, null on failure
+     * @return ApiResponse
      */
-    public function saveUser(array $userData, array $userSettings = []): ?int
+    public function saveUser(array $userData, array $userSettings = []): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         
@@ -247,13 +257,15 @@ class UserService
             ]);
 
             if (isset($response->SaveUyeResult)) {
-                return (int)$response->SaveUyeResult;
+                $userId = (int)$response->SaveUyeResult;
+                return ApiResponse::success($userId, 'Kullanıcı başarıyla kaydedildi.');
             }
+            
+            return ApiResponse::error('Kullanıcı kaydedilemedi.');
+            
         } catch (SoapFault $e) {
-            // Handle error or log
+            return ApiResponse::error('Kullanıcı kaydedilirken bir hata oluştu: ' . $e->getMessage());
         }
-        
-        return null;
     }
 
 

@@ -2,21 +2,23 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use TicimaxApi\Ticimax;
-use TicimaxApi\Service\Location\LocationService;
+use AlperRagib\Ticimax\Ticimax;
 
-// Initialize the API client
-$client = new Ticimax([
-    'username' => 'YOUR_USERNAME',
-    'password' => 'YOUR_PASSWORD',
-    'url' => 'YOUR_SERVICE_URL'
-]);
+
+// Set your Ticimax domain and API key
+$config = require __DIR__ . '/config.php';
+$mainDomain = $config['mainDomain'];
+$apiKey = $config['apiKey'];
+
+// Instantiate the main Ticimax entrypoint
+$ticimax = new Ticimax($mainDomain, $apiKey);
 
 // Get the location service
-$locationService = new LocationService($client->getClient(), $client->getMemberCode());
+$locationService = $ticimax->locationService();
 
 // Get all countries
 $countries = $locationService->getCountries();
+
 if ($countries->isSuccess()) {
     foreach ($countries->getData() as $country) {
         echo sprintf("Country: %s (ID: %d)\n", $country->getName(), $country->getId());

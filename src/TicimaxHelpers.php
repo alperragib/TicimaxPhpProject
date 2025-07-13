@@ -31,4 +31,24 @@ class TicimaxHelpers
 
 		return true;
 	}
+
+	/**
+	 * Convert object to associative array recursively
+	 * @param mixed $object Object to convert
+	 * @return array|mixed
+	 */
+	public static function objectToArray($object)
+	{
+		if (is_object($object)) {
+			$object = get_object_vars($object);
+		}
+		
+		if (is_array($object)) {
+			return array_map([self::class, 'objectToArray'], $object);
+		}
+		
+		return $object;
+	}
+
+
 }

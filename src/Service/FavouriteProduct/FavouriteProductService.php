@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AlperRagib\Ticimax\Service\FavouriteProduct;
 
 use AlperRagib\Ticimax\Model\FavouriteProduct\FavouriteProductModel;
+use AlperRagib\Ticimax\Model\Response\ApiResponse;
 use AlperRagib\Ticimax\TicimaxRequest;
 use SoapFault;
 
@@ -25,9 +26,9 @@ class FavouriteProductService
     /**
      * Fetch FavouriteProducts from the API.
      * @param array $parameters
-     * @return FavouriteProductModel[]
+     * @return ApiResponse
      */
-    public function getFavouriteProducts(array $parameters = []): array
+    public function getFavouriteProducts(array $parameters = []): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         $favouriteProducts = [];
@@ -49,22 +50,31 @@ class FavouriteProductService
                 ]
             ]);
 
+            // Check for API error first
+            if (isset($response->GetFavoriUrunlerResult->IsError) && $response->GetFavoriUrunlerResult->IsError) {
+                return ApiResponse::error($response->GetFavoriUrunlerResult->ErrorMessage ?? 'Bilinmeyen bir hata oluştu');
+            }
+
             $result = $response->GetFavoriUrunlerResult->Urunler ?? [];
 
-
-            if (isset($result->WebFavoriUrunler) && $result->WebFavoriUrunler !== null) {
-                if (is_array($result->WebFavoriUrunler)) {
-                    foreach ($result->WebFavoriUrunler as $favoriUrun) {
+            // Handle the Urunler array structure
+            if (!empty($result)) {
+                // If result is an array, process each WebFavoriUrunler
+                if (is_array($result)) {
+                    foreach ($result as $favoriUrun) {
                         $favouriteProducts[] = new FavouriteProductModel($favoriUrun);
                     }
                 } else {
-                    $favouriteProducts[] = new FavouriteProductModel($result->WebFavoriUrunler);
+                    // Single WebFavoriUrunler object
+                    $favouriteProducts[] = new FavouriteProductModel($result);
                 }
             }
+            
+            return ApiResponse::success($favouriteProducts, 'Favori ürünler başarıyla getirildi.');
+            
         } catch (SoapFault $e) {
-            // Handle error or log
+            return ApiResponse::error('Favori ürünler getirilirken bir hata oluştu: ' . $e->getMessage());
         }
-        return $favouriteProducts;
     }
 
     /**
@@ -72,9 +82,9 @@ class FavouriteProductService
      * @param int $userId User ID
      * @param int $productCardId Product card ID
      * @param float $quantity Quantity (default: 1.0)
-     * @return array Returns response with IsError and ErrorMessage
+     * @return ApiResponse
      */
-    public function addFavouriteProduct(int $userId, int $productCardId, float $quantity = 1.0): array
+    public function addFavouriteProduct(int $userId, int $productCardId, float $quantity = 1.0): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         
@@ -96,28 +106,36 @@ class FavouriteProductService
 
             if (isset($response->AddFavoriUrunResult)) {
                 $result = $response->AddFavoriUrunResult;
-                return [
-                    'IsError' => $result->IsError ?? true,
-                    'ErrorMessage' => $result->ErrorMessage ?? 'Unknown error occurred'
-                ];
+                
+                // Debug: Response detaylarını logla
+                error_log("AddFavoriUrun Response - IsError: " . json_encode($result->IsError ?? null) . 
+                         ", ErrorMessage: " . json_encode($result->ErrorMessage ?? null));
+                
+                // IsError kontrolü - WSDL'e göre boolean field
+                $isError = $result->IsError ?? false; // Default false (başarılı kabul et)
+                
+                if ($isError === true) {
+                    return ApiResponse::error($result->ErrorMessage ?? 'Bilinmeyen bir hata oluştu');
+                }
+                
+                return ApiResponse::success($result, 'Favori ürün başarıyla eklendi.');
             }
+            
+            return ApiResponse::error('AddFavoriUrunResult bulunamadı - API yanıt yapısı beklenenden farklı.');
+            
         } catch (SoapFault $e) {
-            // Handle error or log
+            error_log("AddFavoriUrun SoapFault: " . $e->getMessage());
+            return ApiResponse::error('Favori ürün eklenirken bir hata oluştu: ' . $e->getMessage());
         }
-        
-        return [
-            'IsError' => true,
-            'ErrorMessage' => 'Failed to add favourite product'
-        ];
     }
 
     /**
      * Remove favourite product.
      * @param int $userId User ID
      * @param int $favouriteProductId Favourite product ID
-     * @return array Returns response with IsError and ErrorMessage
+     * @return ApiResponse
      */
-    public function removeFavouriteProduct(int $userId, int $favouriteProductId): array
+    public function removeFavouriteProduct(int $userId, int $favouriteProductId): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         
@@ -138,19 +156,17 @@ class FavouriteProductService
 
             if (isset($response->RemoveFavoriUrunResult)) {
                 $result = $response->RemoveFavoriUrunResult;
-                return [
-                    'IsError' => $result->IsError ?? true,
-                    'ErrorMessage' => $result->ErrorMessage ?? 'Unknown error occurred'
-                ];
+                if ($result->IsError ?? true) {
+                    return ApiResponse::error($result->ErrorMessage ?? 'Bilinmeyen bir hata oluştu');
+                }
+                return ApiResponse::success($result, 'Favori ürün başarıyla silindi.');
             }
+            
+            return ApiResponse::error('Favori ürün silinemedi.');
+            
         } catch (SoapFault $e) {
-            // Handle error or log
+            return ApiResponse::error('Favori ürün silinirken bir hata oluştu: ' . $e->getMessage());
         }
-        
-        return [
-            'IsError' => true,
-            'ErrorMessage' => 'Failed to remove favourite product'
-        ];
     }
 
 }
