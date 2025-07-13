@@ -1,13 +1,9 @@
 <?php
 // Ticimax API config 
 
-// Autoload composer packages
-require_once __DIR__ . '/../vendor/autoload.php';
-
-// API credentials
-$config = [
-    'mainDomain' => 'https://scentsan.com',
-    'apiKey' => 'A6CZ675NOFUZ6UXP17F61CEQJNYF79',
+return [
+    'mainDomain' => 'https://example.com',
+    'apiKey' => 'xxxxxxxxxxxxxxxxxx',
 ];
 
 // Set variables for use in test files - Ticimax constructor needs (domain, key)
