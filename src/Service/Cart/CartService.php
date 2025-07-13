@@ -285,18 +285,21 @@ class CartService
      * @param string|null $paraBirimi Currency code
      * @param int|null $sepetId Cart ID
      * @param int|null $uyeId User ID
+     * @param int|null $sayfaSayisi Page size (WSDL required field)
      * @return ApiResponse
      */
     public function selectWebSepet(
         ?string $dil = null,
         ?string $paraBirimi = null,
         ?int $sepetId = null,
-        ?int $uyeId = null
+        ?int $uyeId = null,
+        ?int $sayfaSayisi = null
     ): ApiResponse {
         try {
             $requestData = [
                 'Dil' => $dil ?? '',
                 'ParaBirimi' => $paraBirimi ?? 'TL',
+                'SayfaSayisi' => $sayfaSayisi ?? 0,
                 'SepetId' => $sepetId,
                 'UyeId' => $uyeId
             ];

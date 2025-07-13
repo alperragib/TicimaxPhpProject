@@ -17,3 +17,4 @@ $apiKey = $config['apiKey'];
 
 // Return config for compatibility
 return $config;
+

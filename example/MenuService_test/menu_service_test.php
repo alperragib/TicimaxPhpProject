@@ -27,7 +27,15 @@ if ($defaultResponse->isSuccess()) {
     echo "Found " . count($menus) . " menus.\n";
     
     if (!empty($menus)) {
-        echo "First menu details:\n";
+        echo "All menus list:\n";
+        foreach ($menus as $index => $menu) {
+            echo "   " . ($index + 1) . ". " . ($menu->Baslik ?? 'N/A') . 
+                 " (ID: " . ($menu->ID ?? 'N/A') . ")" . 
+                 " - URL: " . ($menu->Url ?? 'N/A') . 
+                 " - Active: " . ($menu->Aktif ? 'Yes' : 'No') . "\n";
+        }
+        
+        echo "\nFirst menu details:\n";
         $firstMenu = $menus[0];
         echo "- ID: " . ($firstMenu->ID ?? 'N/A') . "\n";
         echo "- Menu Name: " . ($firstMenu->Baslik ?? 'N/A') . "\n";

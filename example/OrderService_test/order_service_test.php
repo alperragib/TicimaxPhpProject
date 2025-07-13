@@ -1,9 +1,12 @@
 <?php
 
-require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use AlperRagib\Ticimax\Ticimax;
 use AlperRagib\Ticimax\Model\Response\ApiResponse;
+
+// Load configuration
+$config = require __DIR__ . '/../config.php';
 
 echo "=== OrderService Test Süreci Başlıyor ===\n\n";
 
@@ -12,10 +15,11 @@ $testStart = microtime(true);
 
 try {
     // Ticimax API'yi başlat
-    $ticimax = new Ticimax($uyeKodu, $kullaniciAdi, $sifre);
-    $orderService = $ticimax->OrderService();
+    $ticimax = new Ticimax($config['mainDomain'], $config['apiKey']);
+    $orderService = $ticimax->orderService();
     
-    echo "✓ Ticimax OrderService başlatıldı\n\n";
+    echo "✓ Ticimax OrderService başlatıldı\n";
+    echo "Domain: {$config['mainDomain']}\n\n";
     
     // Test sayaçları
     $testCount = 0;

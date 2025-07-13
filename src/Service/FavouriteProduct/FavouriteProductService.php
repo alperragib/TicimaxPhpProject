@@ -57,16 +57,19 @@ class FavouriteProductService
 
             $result = $response->GetFavoriUrunlerResult->Urunler ?? [];
 
-            // Handle the Urunler array structure
-            if (!empty($result)) {
-                // If result is an array, process each WebFavoriUrunler
-                if (is_array($result)) {
-                    foreach ($result as $favoriUrun) {
+            // Handle the Urunler structure (can be object or array)
+            if (is_object($result)) {
+                // Convert stdClass to array for easier handling
+                $resultArray = (array)$result;
+                if (!empty($resultArray)) {
+                    foreach ($resultArray as $favoriUrun) {
                         $favouriteProducts[] = new FavouriteProductModel($favoriUrun);
                     }
-                } else {
-                    // Single WebFavoriUrunler object
-                    $favouriteProducts[] = new FavouriteProductModel($result);
+                }
+            } elseif (is_array($result) && !empty($result)) {
+                // If result is an array, process each WebFavoriUrunler
+                foreach ($result as $favoriUrun) {
+                    $favouriteProducts[] = new FavouriteProductModel($favoriUrun);
                 }
             }
             
