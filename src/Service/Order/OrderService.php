@@ -18,15 +18,23 @@ class OrderService
     private TicimaxRequest $request;
     private string $apiUrl = "/Servis/SiparisServis.svc?singleWsdl";
 
+    /**
+     * Order data for SaveSiparis operation
+     * @var array
+     */
+    public array $data = [];
+
     public function __construct(TicimaxRequest $request)
     {
         $this->request = $request;
     }
 
     /**
-     * Siparişleri getir
-     * @param array $filters Filtreler
-     * @param array $pagination Sayfalama
+     * Get orders
+     * @param array $filters Filters
+     * @param array $pagination Pagination (page and per_page can be used)
+     *                         - Simple usage: ['page' => 1, 'per_page' => 50]
+     *                         - Advanced: ['BaslangicIndex' => 0, 'KayitSayisi' => 50]
      * @return ApiResponse
      */
     public function getOrders(array $filters = [], array $pagination = []): ApiResponse
@@ -69,7 +77,7 @@ class OrderService
                 'StrPaketlemeDurumu'         => '',
                 'StrSiparisDurumu'           => '',
                 'StrSiparisID'               => '',
-                'TedarikciID'                => -1,
+                'TedarikciID'                => -1,  // -1 = tüm tedarikçiler
                 'TeslimatGunuBas'            => null,
                 'TeslimatGunuSon'            => null,
                 'TeslimatMagazaID'           => null,
@@ -77,6 +85,15 @@ class OrderService
                 'UyeID'                      => -1,
                 'UyeTelefon'                 => '',
             ];
+
+            // Simple pagination support: page and per_page can be used
+            if (isset($pagination['page']) && isset($pagination['per_page'])) {
+                $page = max(1, (int)$pagination['page']);
+                $perPage = max(1, (int)$pagination['per_page']);
+                $pagination['BaslangicIndex'] = ($page - 1) * $perPage;
+                $pagination['KayitSayisi'] = $perPage;
+                unset($pagination['page'], $pagination['per_page']);
+            }
 
             $defaultPagination = [
                 'BaslangicIndex'  => 0,
@@ -108,12 +125,12 @@ class OrderService
 
             return ApiResponse::success(
                 $orders,
-                'Siparişler başarıyla getirildi.'
+                'Orders retrieved successfully.'
             );
 
         } catch (SoapFault $e) {
             return ApiResponse::error(
-                'Siparişler getirilirken bir hata oluştu: ' . $e->getMessage()
+                'Error retrieving orders: ' . $e->getMessage()
             );
         }
     }
@@ -121,9 +138,9 @@ class OrderService
     /**
      * Create a new order via the API.
      * @param OrderModel $order
-     * @return bool
+     * @return ApiResponse
      */
-    public function createOrder(OrderModel $order): bool
+    public function createOrder(OrderModel $order): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         try {
@@ -134,38 +151,46 @@ class OrderService
                 ]
             ];
             $response = $client->__soapCall("SaveSiparis", $params);
-            return $response->SaveSiparisResult->ID ??  0;
+            $orderId = $response->SaveSiparisResult->ID ?? 0;
+            
+            if ($orderId > 0) {
+                return ApiResponse::success(
+                    ['orderId' => $orderId],
+                    'Order created successfully.'
+                );
+            } else {
+                return ApiResponse::error('Failed to create order.');
+            }
         } catch (SoapFault $e) {
-            // Handle error or log
-            return false;
+            return ApiResponse::error('Error creating order: ' . $e->getMessage());
         }
     }
 
     /**
-     * Yeni sipariş oluştur
-     * @param array $data Sipariş verileri
+     * Create new order
+     * @param array $data Order data
      * @return ApiResponse
      */
     public function saveOrder(): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         try {
-            // Sipariş için gerekli ödeme bilgisi oluşturma
+            // Creating required payment information for order
             $odeme = [
                 'BankaKomisyonu' => 0.0,
                 'HavaleHesapID' => null,
                 'KapidaOdemeTutari' => 0.0,
-                'OdemeDurumu' => 1, // Ödeme durumu (örn: 1 = Ödendi)
+                'OdemeDurumu' => 1, // Payment status (e.g.: 1 = Paid)
                 'OdemeIndirimi' => 0.0,
                 'OdemeNotu' => '',
-                'OdemeSecenekID' => 0, // Tanımlı ödeme seçenek ID'si
-                'OdemeTipi' => 1, // Ödeme tipi (örn: 1 = Kredi Kartı)
+                'OdemeSecenekID' => 0, // Defined payment option ID
+                'OdemeTipi' => 1, // Payment type (e.g.: 1 = Credit Card)
                 'TaksitSayisi' => 1,
                 'Tarih' => date('c'), // ISO 8601 format
                 'Tutar' => 0.0
             ];
 
-            // Sipariş ürünleri için örnek yapı
+            // Sample structure for order products
             $urunler = [];
             foreach ($this->data['Urunler'] ?? [] as $urun) {
                 $urunler[] = [
@@ -178,58 +203,117 @@ class OrderService
                 ];
             }
 
-            // Ana sipariş yapısı
+            // Main order structure - WSDL WebSiparisSaveRequest yapısına uygun (CORRECTED FIELD NAMES)
             $siparis = [
-                'FaturaAdresId' => $this->data['FaturaAdresId'] ?? 0,
+                // ZORUNLU - Kullanıcı Bilgileri (WSDL: UyeID, UyeAdi, Mail)
+                'UyeID' => $this->data['UyeID'] ?? $this->data['UyeId'] ?? 0,  // CORRECTED: UyeID (capital D)
+                'UyeAdi' => $this->data['UyeAdi'] ?? 'Test User',
+                'UyeSoyadi' => $this->data['UyeSoyadi'] ?? 'Test',  // ADDED: UyeSoyadi required
+                'Mail' => $this->data['Mail'] ?? $this->data['UyeMail'] ?? 'test@example.com',  // CORRECTED: Mail not UyeMail
+                
+                // ZORUNLU - Adres Bilgileri (WSDL: TeslimatAdresi, FaturaAdresi objects)
+                'TeslimatAdresi' => [  // CORRECTED: TeslimatAdresi (with 'i')
+                    'Adres' => $this->data['TeslimatAdresi']['Adres'] ?? $this->data['TeslimatAdres']['Adres'] ?? 'Test Teslimat Adresi',
+                    'Il' => $this->data['TeslimatAdresi']['Il'] ?? $this->data['TeslimatAdres']['Il'] ?? 'İstanbul',
+                    'Ilce' => $this->data['TeslimatAdresi']['Ilce'] ?? $this->data['TeslimatAdres']['Ilce'] ?? 'Beyoğlu',
+                    'PostaKodu' => $this->data['TeslimatAdresi']['PostaKodu'] ?? $this->data['TeslimatAdres']['PostaKodu'] ?? '34000',
+                    'AliciAdi' => $this->data['TeslimatAdresi']['AliciAdi'] ?? $this->data['TeslimatAdres']['AliciAdi'] ?? 'Test User',
+                    'AliciTelefon' => $this->data['TeslimatAdresi']['AliciTelefon'] ?? $this->data['TeslimatAdres']['AliciTelefon'] ?? '0555 123 45 67',
+                    'Ulke' => $this->data['TeslimatAdresi']['Ulke'] ?? $this->data['TeslimatAdres']['Ulke'] ?? 'Türkiye'
+                ],
+                'FaturaAdresi' => [  // CORRECTED: FaturaAdresi (with 'i')
+                    'Adres' => $this->data['FaturaAdresi']['Adres'] ?? $this->data['FaturaAdres']['Adres'] ?? 'Test Fatura Adresi',
+                    'Il' => $this->data['FaturaAdresi']['Il'] ?? $this->data['FaturaAdres']['Il'] ?? 'İstanbul',
+                    'Ilce' => $this->data['FaturaAdresi']['Ilce'] ?? $this->data['FaturaAdres']['Ilce'] ?? 'Beyoğlu',
+                    'PostaKodu' => $this->data['FaturaAdresi']['PostaKodu'] ?? $this->data['FaturaAdres']['PostaKodu'] ?? '34000',
+                    'AdSoyad' => $this->data['FaturaAdresi']['AdSoyad'] ?? $this->data['FaturaAdres']['AdSoyad'] ?? 'Test User',
+                    'FirmaAdi' => $this->data['FaturaAdresi']['FirmaAdi'] ?? $this->data['FaturaAdres']['FirmaAdi'] ?? '',
+                    'VergiDairesi' => $this->data['FaturaAdresi']['VergiDairesi'] ?? $this->data['FaturaAdres']['VergiDairesi'] ?? '',
+                    'VergiNo' => $this->data['FaturaAdresi']['VergiNo'] ?? $this->data['FaturaAdres']['VergiNo'] ?? '',
+                    'isKurumsal' => $this->data['FaturaAdresi']['isKurumsal'] ?? $this->data['FaturaAdres']['isKurumsal'] ?? false,
+                    'Ulke' => $this->data['FaturaAdresi']['Ulke'] ?? $this->data['FaturaAdres']['Ulke'] ?? 'Türkiye'
+                ],
+                
+                // Finansal Bilgiler
                 'IndirimTutari' => $this->data['IndirimTutari'] ?? 0.0,
-                'KargoAdresId' => $this->data['KargoAdresId'] ?? 0,
-                'KargoFirmaId' => $this->data['KargoFirmaId'] ?? 0,
                 'KargoTutari' => $this->data['KargoTutari'] ?? 0.0,
-                'Odeme' => $odeme,
-                'ParaBirimi' => $this->data['ParaBirimi'] ?? 'TL',
+                'ToplamTutar' => $this->data['ToplamTutar'] ?? 0.0,  // ADDED: ToplamTutar required
+                'ToplamKdv' => $this->data['ToplamKdv'] ?? $this->data['UrunTutariKdv'] ?? 0.0,  // CORRECTED: ToplamKdv
+                
+                // Kargo ve Para Birimi (WSDL FIELD NAMES)
+                'KargoFirmaID' => $this->data['KargoFirmaID'] ?? $this->data['KargoFirmaId'] ?? 2,  // CORRECTED: KargoFirmaID (capital ID)
+                'ParaBirimi' => $this->data['ParaBirimi'] ?? 'TRY',
+                
+                // Sipariş Detayları
                 'SiparisKaynagi' => $this->data['SiparisKaynagi'] ?? 'Web',
                 'SiparisNotu' => $this->data['SiparisNotu'] ?? '',
-                'Urunler' => $urunler,
-                'UrunTutari' => $this->data['UrunTutari'] ?? 0.0,
-                'UrunTutariKdv' => $this->data['UrunTutariKdv'] ?? 0.0,
-                'UyeId' => $this->data['UyeId'] ?? 0,
                 'TeslimatSaati' => $this->data['TeslimatSaati'] ?? '',
-                'TeslimatTarihi' => $this->data['TeslimatTarihi'] ?? date('c')
+                'TeslimatTarihi' => $this->data['TeslimatTarihi'] ?? date('c'),  // FIXED: TeslimatTarihi not TeslimatGunu
+                
+                // Ürünler ve Ödeme
+                'Urunler' => $urunler,
+                'Odemeler' => [$odeme] // Array olarak gönder
             ];
 
-            // API çağrısı yapma
+            // Making API call - WSDL'ye göre siparis object olmalı
             $response = $client->__soapCall("SaveSiparis", [
                 [
                     'UyeKodu' => $this->request->key,
-                    'siparis' => $siparis
+                    'siparis' => (object)$siparis  // Object olarak gönder - WSDL gereksinimi
                 ]
             ]);
 
-            // Yanıt kontrolü
+            // Response validation - WSDL WebSiparisSaveResponse yapısına göre
             if (isset($response->SaveSiparisResult)) {
                 $result = $response->SaveSiparisResult;
+                
+                // WebSiparisSaveResponse extends WebServisResponse
+                // IsError field'ı WebServisResponse'dan geliyor
                 if (isset($result->IsError) && $result->IsError === false) {
+                    // Başarılı - SiparisDetayi WebSiparis object'i içerir
+                    $orderDetails = $result->SiparisDetayi ?? null;
+                    $orderId = $orderDetails->ID ?? null;
+                    
                     return ApiResponse::success(
-                        ['orderId' => $result->ID ?? null],
-                        'Sipariş başarıyla oluşturuldu.'
+                        [
+                            'orderId' => $orderId,
+                            'orderDetails' => $orderDetails
+                        ],
+                        'Order created successfully.'
                     );
                 }
-                // Hata durumunda log tutulabilir
-                error_log("Sipariş kaydetme hatası: " . ($result->ErrorMessage ?? 'Bilinmeyen hata'));
+                
+                // Hata durumu - Messages array'i kontrol et
+                $errorMessages = [];
+                if (isset($result->Messages)) {
+                    $messages = is_array($result->Messages) ? $result->Messages : [$result->Messages];
+                    foreach ($messages as $message) {
+                        if (isset($message->ErrorMessage)) {
+                            $errorMessages[] = $message->ErrorMessage;
+                        }
+                    }
+                }
+                
+                $fullErrorMessage = !empty($errorMessages) 
+                    ? implode('. ', $errorMessages)
+                    : ($result->ErrorMessage ?? 'Unknown error');
+                    
+                error_log("Order save error: " . $fullErrorMessage);
+                return ApiResponse::error('Order save failed: ' . $fullErrorMessage);
             }
 
         } catch (SoapFault $e) {
-            // SOAP hatası durumunda log tutulabilir
-            error_log("SOAP Hatası: " . $e->getMessage());
+            // SOAP error can be logged if needed
+            error_log("SOAP Error: " . $e->getMessage());
         }
-        return ApiResponse::error('Beklenmeyen bir hata oluştu.');
+        return ApiResponse::error('An unexpected error occurred.');
     }
 
     /**
-     * Sipariş ödemelerini getir
-     * @param int $siparisId Siparişin ID'si
-     * @param int $odemeId Ödeme ID'si (opsiyonel, varsayılan 0)
-     * @param bool|null $isAktarildi Aktarılma durumu (opsiyonel)
+     * Get order payments
+     * @param int $siparisId Order ID
+     * @param int $odemeId Payment ID (optional, default 0)
+     * @param bool|null $isAktarildi Transfer status (optional)
      * @return ApiResponse
      */
     public function getOrderPayments(int $siparisId, int $odemeId = 0, ?bool $isAktarildi = null): ApiResponse
@@ -279,26 +363,26 @@ class OrderService
 
                 return ApiResponse::success(
                     $payments,
-                    'Ödeme bilgileri başarıyla getirildi.'
+                    'Payment information retrieved successfully.'
                 );
             }
 
             return ApiResponse::success(
                 [],
-                'Ödeme bilgisi bulunamadı.'
+                'No payment information found.'
             );
 
         } catch (SoapFault $e) {
             return ApiResponse::error(
-                'Ödeme bilgileri getirilirken bir hata oluştu: ' . $e->getMessage()
+                'Error retrieving payment information: ' . $e->getMessage()
             );
         }
     }
 
     /**
-     * Sipariş ürünlerini getir
-     * @param int $siparisId Siparişin ID'si
-     * @param bool $iptalEdilmisUrunler İptal edilmiş ürünler getirilsin mi?
+     * Get order products
+     * @param int $siparisId Order ID
+     * @param bool $iptalEdilmisUrunler Should cancelled products be included?
      * @return ApiResponse
      */
     public function getOrderProducts(int $siparisId, bool $iptalEdilmisUrunler = false): ApiResponse
@@ -317,7 +401,7 @@ class OrderService
             if (isset($response->SelectSiparisUrunResult->WebSiparisUrun)) {
                 $urunler = $response->SelectSiparisUrunResult->WebSiparisUrun;
                 
-                // Tek ürün gelirse array'e çevir
+                // Convert single object to array if needed
                 if (is_object($urunler)) {
                     $urunler = [$urunler];
                 }
@@ -325,39 +409,99 @@ class OrderService
                 $products = [];
                 foreach ($urunler as $urun) {
                     $products[] = [
+                        // Basic Info
                         'ID' => $urun->ID ?? null,
-                        'SiparisId' => $urun->SiparisId ?? null,
-                        'Adet' => $urun->Adet ?? 0.0,
+                        'SiparisID' => $urun->SiparisID ?? null,  // Fixed: SiparisId -> SiparisID
+                        'UrunID' => $urun->UrunID ?? null,
+                        'UrunKartiID' => $urun->UrunKartiID ?? null,
+                        'UrunAdi' => $urun->UrunAdi ?? '',
+                        'StokKodu' => $urun->StokKodu ?? '',
                         'Barkod' => $urun->Barkod ?? '',
+                        
+                        // Quantity & Pricing
+                        'Adet' => $urun->Adet ?? 0.0,
+                        'Tutar' => $urun->Tutar ?? 0.0,
+                        'Maliyet' => $urun->Maliyet ?? 0.0,
+                        'KdvOrani' => $urun->KdvOrani ?? 0.0,
+                        'KdvTutari' => $urun->KdvTutari ?? 0.0,
+                        'SatisBirimi' => $urun->SatisBirimi ?? '',
+                        'UrunAgirligi' => $urun->UrunAgirligi ?? 0.0,
+                        
+                        // Status & Process
                         'Durum' => $urun->Durum ?? null,
                         'DurumAd' => $urun->DurumAd ?? '',
-                        'IslemAd' => $urun->IslemAd ?? '',
                         'IslemID' => $urun->IslemID ?? null,
+                        'IslemAd' => $urun->IslemAd ?? '',
+                        'IslemTarihi' => $urun->IslemTarihi ?? null,
+                        
+                        // Pricing Details
+                        'SatisAniSatisFiyat' => $urun->SatisAniSatisFiyat ?? 0.0,
+                        'SatisAniSatisFiyatKdv' => $urun->SatisAniSatisFiyatKdv ?? 0.0,
+                        'SatisAniIndirimliFiyat' => $urun->SatisAniIndirimliFiyat ?? 0.0,
+                        'SatisAniIndirimliFiyatKdv' => $urun->SatisAniIndirimliFiyatKdv ?? 0.0,
+                        'FiyatIndirimOrani' => $urun->FiyatIndirimOrani ?? 0.0,
+                        'FiyatIndirimi' => $urun->FiyatIndirimi ?? 0.0,
+                        'ToplamIndirim' => $urun->ToplamIndirim ?? 0.0,
+                        
+                        // Campaign & Discounts
                         'KampanyaID' => $urun->KampanyaID ?? null,
+                        'KampanyaIndirimOrani' => $urun->KampanyaIndirimOrani ?? 0.0,
                         'KampanyaIndirimTutari' => $urun->KampanyaIndirimTutari ?? 0.0,
-                        'KdvOrani' => $urun->KdvOrani ?? 0,
-                        'KdvTutari' => $urun->KdvTutari ?? 0.0,
-                        'MagazaAtamaTarihi' => $urun->MagazaAtamaTarihi ?? null,
-                        'MagazaDurum' => $urun->MagazaDurum ?? null,
-                        'MagazaGonderimTarihi' => $urun->MagazaGonderimTarihi ?? null,
-                        'MagazaID' => $urun->MagazaID ?? null,
-                        'MagazaKodu' => $urun->MagazaKodu ?? '',
-                        'Maliyet' => $urun->Maliyet ?? 0.0,
-                        'StokKodu' => $urun->StokKodu ?? '',
+                        'HediyeCekiIndirimi' => $urun->HediyeCekiIndirimi ?? 0.0,
+                        
+                        // Supplier Info
                         'TedarikciID' => $urun->TedarikciID ?? null,
                         'TedarikciKodu' => $urun->TedarikciKodu ?? '',
                         'TedarikciKodu2' => $urun->TedarikciKodu2 ?? '',
-                        'Tutar' => $urun->Tutar ?? 0.0,
-                        'UrunAdi' => $urun->UrunAdi ?? '',
-                        'UrunID' => $urun->UrunID ?? null,
-                        'UrunKartiID' => $urun->UrunKartiID ?? null
+                        
+                        // Store Info
+                        'MagazaID' => $urun->MagazaID ?? null,
+                        'MagazaKodu' => $urun->MagazaKodu ?? '',
+                        'MagazaDurum' => $urun->MagazaDurum ?? null,
+                        'MagazaAtamaTarihi' => $urun->MagazaAtamaTarihi ?? null,
+                        'MagazaGonderimTarihi' => $urun->MagazaGonderimTarihi ?? null,
+                        
+                        // Shipping Info
+                        'KargoFirmaID' => $urun->KargoFirmaID ?? null,
+                        'KargoPaketID' => $urun->KargoPaketID ?? null,
+                        'KargoTipi' => $urun->KargoTipi ?? null,
+                        'KargoTutari' => $urun->KargoTutari ?? 0.0,
+                        'KargoTakipNumarasi' => $urun->KargoTakipNumarasi ?? '',
+                        'KargoTakipLink' => $urun->KargoTakipLink ?? '',
+                        
+                        // Return Info
+                        'IadeNedenId' => $urun->IadeNedenId ?? null,
+                        'IadeNeden' => $urun->IadeNeden ?? '',
+                        
+                        // Product Creation Info
+                        'UrunOlusturmaGrupId' => $urun->UrunOlusturmaGrupId ?? null,
+                        'UrunOlusturmaGrupAdi' => $urun->UrunOlusturmaGrupAdi ?? '',
+                        'UrunOlusturmaKartId' => $urun->UrunOlusturmaKartId ?? null,
+                        'UrunOlusturmaUrunAdi' => $urun->UrunOlusturmaUrunAdi ?? '',
+                        'UrunOlusturmaGuid' => $urun->UrunOlusturmaGuid ?? '',
+                        'UrunTipi' => $urun->UrunTipi ?? null,
+                        
+                        // Additional Info
+                        'AsortiGrupId' => $urun->AsortiGrupId ?? null,
+                        'EskiSiparisUrunId' => $urun->EskiSiparisUrunId ?? null,
+                        'FormId' => $urun->FormId ?? null,
+                        'FormIdList' => $urun->FormIdList ?? null,
+                        'GtipKodu' => $urun->GtipKodu ?? '',
+                        'IscilikAgirlik' => $urun->IscilikAgirlik ?? 0.0,
+                        'IscilikParaBirimiID' => $urun->IscilikParaBirimiID ?? null,
+                        'ResimYolu' => $urun->ResimYolu ?? '',
+                        'MarketplaceParams' => $urun->MarketplaceParams ?? '',
+                        
+                        // Complex Objects (will be handled as-is)
+                        'EkSecenekList' => $urun->EkSecenekList ?? null,
+                        'Ozellestirme' => $urun->Ozellestirme ?? null
                     ];
                 }
 
                 return ApiResponse::success(
                     $products,
                     sprintf(
-                        'Sipariş ürünleri başarıyla getirildi. Toplam %d ürün bulundu.',
+                        'Order products retrieved successfully. Total %d products found.',
                         count($products)
                     )
                 );
@@ -365,12 +509,12 @@ class OrderService
 
             return ApiResponse::success(
                 [],
-                'Bu siparişte ürün bulunamadı.'
+                'No products found in this order.'
             );
 
         } catch (SoapFault $e) {
             return ApiResponse::error(
-                'Sipariş ürünleri getirilirken bir hata oluştu: ' . $e->getMessage()
+                'Error retrieving order products: ' . $e->getMessage()
             );
         }
     }
@@ -379,9 +523,9 @@ class OrderService
      * Mark an order as transferred
      * 
      * @param int $orderId Order ID to be marked as transferred
-     * @return bool Returns true if successful
+     * @return ApiResponse
      */
-    public function setOrderTransferred(int $orderId): bool
+    public function setOrderTransferred(int $orderId): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         
@@ -394,10 +538,12 @@ class OrderService
             ]);
             
             // The API returns an empty response on success
-            return true;
+            return ApiResponse::success(
+                ['orderId' => $orderId, 'transferred' => true],
+                'Order marked as transferred successfully.'
+            );
         } catch (SoapFault $e) {
-            // Handle error or log
-            return false;
+            return ApiResponse::error('Error marking order as transferred: ' . $e->getMessage());
         }
     }
 
@@ -405,9 +551,9 @@ class OrderService
      * Cancel the transferred status of an order
      * 
      * @param int $orderId Order ID to cancel the transferred status
-     * @return bool Returns true if successful
+     * @return ApiResponse
      */
-    public function cancelOrderTransferred(int $orderId): bool
+    public function cancelOrderTransferred(int $orderId): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         
@@ -420,10 +566,12 @@ class OrderService
             ]);
             
             // The API returns an empty response on success
-            return true;
+            return ApiResponse::success(
+                ['orderId' => $orderId, 'transferred' => false],
+                'Order transfer status cancelled successfully.'
+            );
         } catch (SoapFault $e) {
-            // Handle error or log
-            return false;
+            return ApiResponse::error('Error cancelling order transfer status: ' . $e->getMessage());
         }
     }
 }

@@ -3,25 +3,25 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use AlperRagib\Ticimax\Ticimax;
 
-// Konfigürasyon yükle
+// Load configuration
 $config = require __DIR__ . '/config.php';
 $mainDomain = $config['mainDomain'];
 $apiKey = $config['apiKey'];
 
-// Test modu kontrolü
+// Test mode check
 define('TEST_MODE', true);
 define('SAFE_MODE', true);
 
-echo "=== Ticimax API Sipariş Listeleme Testi ===\n";
+echo "=== Ticimax API Order Listing Test ===\n";
 echo "Domain: " . $mainDomain . "\n";
-echo "Test Modu: " . (TEST_MODE ? 'Aktif' : 'Pasif') . "\n\n";
+echo "Test Mode: " . (TEST_MODE ? 'Active' : 'Inactive') . "\n\n";
 
 try {
     $ticimax = new Ticimax($mainDomain, $apiKey);
     $orderService = $ticimax->orderService();
 
-    // Test 1: Son 24 saatteki siparişler
-    echo "1. Son 24 Saat Siparişleri\n";
+    // Test 1: Orders from last 24 hours
+    echo "1. Last 24 Hours Orders\n";
     echo "-------------------------\n";
     
     $filters = [
@@ -31,10 +31,10 @@ try {
     ];
 
     $response = $orderService->getOrders($filters);
-    printOrders($response, "Son 24 Saat");
+    printOrders($response, "Last 24 Hours");
 
-    // Test 2: Son 7 gündeki siparişler
-    echo "\n2. Son 7 Gün Siparişleri\n";
+    // Test 2: Orders from last 7 days
+    echo "\n2. Last 7 Days Orders\n";
     echo "-------------------------\n";
     
     $filters = [
@@ -44,10 +44,10 @@ try {
     ];
 
     $response = $orderService->getOrders($filters);
-    printOrders($response, "Son 7 Gün");
+    printOrders($response, "Last 7 Days");
 
-    // Test 3: Belirli bir tarih aralığı
-    echo "\n3. Özel Tarih Aralığı (Geçen Ay)\n";
+    // Test 3: Orders from specific date range
+    echo "\n3. Custom Date Range (Last Month)\n";
     echo "--------------------------------\n";
     
     $filters = [
@@ -57,67 +57,67 @@ try {
     ];
 
     $response = $orderService->getOrders($filters);
-    printOrders($response, "Geçen Ay");
+    printOrders($response, "Last Month");
 
-    // Test 4: Sipariş durumuna göre filtreleme
-    echo "\n4. Tamamlanan Siparişler (Son 30 Gün)\n";
+    // Test 4: Filter by order status
+    echo "\n4. Completed Orders (Last 30 Days)\n";
     echo "------------------------------------\n";
     
     $filters = [
         'SiparisTarihiBas' => date('Y-m-d H:i:s', strtotime('-30 days')),
         'SiparisTarihiSon' => date('Y-m-d H:i:s'),
-        'SiparisDurumu' => 2, // Tamamlanan siparişler
+        'SiparisDurumu' => 2, // Completed orders
         'KayitSayisi' => 5
     ];
 
     $response = $orderService->getOrders($filters);
-    printOrders($response, "Tamamlanan Siparişler");
+    printOrders($response, "Completed Orders");
 
 } catch (Exception $e) {
-    echo "\n! TEST HATASI: " . $e->getMessage() . "\n";
+    echo "\n! TEST ERROR: " . $e->getMessage() . "\n";
 }
 
-echo "\n=== Test Tamamlandı ===\n";
+echo "\n=== Test Completed ===\n";
 
-// Yardımcı fonksiyon: Siparişleri yazdır
+// Helper function: Print orders
 function printOrders($response, $title) {
     if ($response->isSuccess()) {
         $orders = $response->getData();
-        echo "Toplam " . $title . " Sipariş Sayısı: " . count($orders) . "\n\n";
+        echo "Total " . $title . " Order Count: " . count($orders) . "\n\n";
         
         if (!empty($orders)) {
             foreach ($orders as $order) {
                 echo sprintf(
-                    "Sipariş ID: %s\n" .
-                    "Müşteri: %s\n" .
-                    "Tarih: %s\n" .
-                    "Tutar: %.2f TL\n" .
-                    "Durum: %s\n",
-                    $order->ID ?? 'Belirtilmemiş',
-                    $order->AdiSoyadi ?? 'Belirtilmemiş',
-                    $order->SiparisTarihi ?? 'Belirtilmemiş',
+                    "Order ID: %s\n" .
+                    "Customer: %s\n" .
+                    "Date: %s\n" .
+                    "Amount: %.2f TL\n" .
+                    "Status: %s\n",
+                    $order->ID ?? 'Not specified',
+                    $order->AdiSoyadi ?? 'Not specified',
+                    $order->SiparisTarihi ?? 'Not specified',
                     $order->SiparisToplamTutari ?? 0,
-                    getSiparisDurumu($order->SiparisDurumu ?? 0)
+                    getOrderStatus($order->SiparisDurumu ?? 0)
                 );
                 echo "------------------------\n";
             }
         } else {
-            echo "! Bu dönemde sipariş bulunamadı.\n";
+            echo "! No orders found in this period.\n";
         }
     } else {
-        echo "! Hata: " . $response->getMessage() . "\n";
+        echo "! Error: " . $response->getMessage() . "\n";
     }
 }
 
-// Yardımcı fonksiyon: Sipariş durumu açıklaması
-function getSiparisDurumu($durum) {
-    $durumlar = [
-        0 => 'Beklemede',
-        1 => 'Onaylandı',
-        2 => 'Tamamlandı',
-        3 => 'İptal Edildi',
-        4 => 'İade Edildi'
+// Helper function: Order status description
+function getOrderStatus($status) {
+    $statuses = [
+        0 => 'Pending',
+        1 => 'Approved',
+        2 => 'Completed',
+        3 => 'Cancelled',
+        4 => 'Returned'
     ];
     
-    return $durumlar[$durum] ?? 'Bilinmiyor';
+    return $statuses[$status] ?? 'Unknown';
 } 

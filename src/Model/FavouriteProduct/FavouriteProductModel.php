@@ -13,7 +13,7 @@ use AlperRagib\Ticimax\Model\FavouriteProduct\FavouriteProductVariationModel;
  */
 class FavouriteProductModel extends BaseModel
 {
-    // Tüm işlevsellik BaseModel'den geliyor:
+    // All functionality comes from BaseModel:
     // - __construct
     // - convertToArray
     // - __get, __set, __isset

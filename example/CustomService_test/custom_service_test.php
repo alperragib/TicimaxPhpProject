@@ -7,52 +7,52 @@ use AlperRagib\Ticimax\Ticimax;
 // Load configuration
 $config = require __DIR__ . '/../config.php';
 
-echo "=== CustomService Test Süreci Başlıyor ===\n\n";
+echo "=== CustomService Test Process Starting ===\n\n";
 
-// Test başlangıç zamanı
+// Test start time
 $testStart = microtime(true);
 
 try {
-    // Ticimax API'yi başlat
+    // Initialize Ticimax API
     $ticimax = new Ticimax($config['mainDomain'], $config['apiKey']);
     
-    echo "✓ Ticimax başlatıldı\n";
+    echo "✓ Ticimax initialized\n";
     echo "Domain: {$config['mainDomain']}\n\n";
     
-    // Test sayaçları
+    // Test counters
     $testCount = 0;
     $successCount = 0;
     $errorCount = 0;
     
     echo "========================================\n";
-    echo "        CUSTOM SERVİS TESTLERİ\n";
+    echo "        CUSTOM SERVICE TESTS\n";
     echo "========================================\n\n";
     
-    // Test 1: CustomService kontrolü
-    echo "🧪 Test 1: CustomService Varlık Kontrolü\n";
+    // Test 1: CustomService check
+    echo "🧪 Test 1: CustomService Existence Check\n";
     echo "--------------------------------------\n";
     $testCount++;
     
     try {
-        // CustomService metodlarını kontrol et (correct method name)
+        // Check CustomService methods
         if (method_exists($ticimax, 'customService')) {
             $customService = $ticimax->customService();
             $successCount++;
-            echo "✅ CustomService başarıyla yüklendi\n";
-            echo "   🔧 Servis Tipi: " . get_class($customService) . "\n";
+            echo "✅ CustomService loaded successfully\n";
+            echo "   🔧 Service Type: " . get_class($customService) . "\n";
         } else {
             $errorCount++;
-            echo "❌ customService metodu bulunamadı\n";
-            echo "   💡 Bu normal - CustomService henüz implement edilmemiş\n";
+            echo "❌ customService method not found\n";
+            echo "   💡 This is normal - CustomService not yet implemented\n";
         }
     } catch (Exception $e) {
         $errorCount++;
-        echo "❌ CustomService hatası: " . $e->getMessage() . "\n";
+        echo "❌ CustomService error: " . $e->getMessage() . "\n";
     }
     echo "\n";
     
-    // Test 2: Reflection ile metod kontrolü
-    echo "🧪 Test 2: Mevcut Metodları Keşfetme\n";
+    // Test 2: Method check using Reflection
+    echo "🧪 Test 2: Discovering Available Methods\n";
     echo "----------------------------------\n";
     $testCount++;
     
@@ -63,112 +63,112 @@ try {
         });
         
         $successCount++;
-        echo "✅ Metod kontrolü tamamlandı\n";
-        echo "   📊 Toplam Ticimax Metod: " . count($availableMethods) . "\n";
-        echo "   🔍 Custom İçeren Metodlar: " . count($customMethods) . "\n";
+        echo "✅ Method check completed\n";
+        echo "   📊 Total Ticimax Methods: " . count($availableMethods) . "\n";
+        echo "   🔍 Methods Containing 'Custom': " . count($customMethods) . "\n";
         
         if (!empty($customMethods)) {
             foreach ($customMethods as $method) {
                 echo "   • $method\n";
             }
         } else {
-            echo "   📝 Hiç custom metod bulunamadı\n";
+            echo "   📝 No custom methods found\n";
         }
         
-        // Mevcut service metodları göster
+        // Show available service methods
         $serviceMethods = array_filter($availableMethods, function($method) {
             return strpos(strtolower($method), 'service') !== false;
         });
         
-        echo "   🛠️ Mevcut Service Metodlar:\n";
+        echo "   🛠️ Available Service Methods:\n";
         foreach ($serviceMethods as $method) {
             echo "   • $method\n";
         }
         
     } catch (Exception $e) {
         $errorCount++;
-        echo "❌ Reflection hatası: " . $e->getMessage() . "\n";
+        echo "❌ Reflection error: " . $e->getMessage() . "\n";
     }
     echo "\n";
     
-    // Test 3: Servis klasörü kontrolü
-    echo "🧪 Test 3: Servis Dosyası Kontrolü\n";
+    // Test 3: Service directory check
+    echo "🧪 Test 3: Service File Check\n";
     echo "--------------------------------\n";
     $testCount++;
     
     $customServicePath = __DIR__ . '/../../src/Service/Custom/CustomService.php';
     if (file_exists($customServicePath)) {
         $successCount++;
-        echo "✅ CustomService dosyası mevcut\n";
-        echo "   📁 Dosya Yolu: $customServicePath\n";
-        echo "   📏 Dosya Boyutu: " . number_format(filesize($customServicePath)) . " bytes\n";
+        echo "✅ CustomService file exists\n";
+        echo "   📁 File Path: $customServicePath\n";
+        echo "   📏 File Size: " . number_format(filesize($customServicePath)) . " bytes\n";
     } else {
         $errorCount++;
-        echo "❌ CustomService dosyası bulunamadı\n";
-        echo "   📍 Aranan Yol: $customServicePath\n";
-        echo "   💡 CustomService henüz oluşturulmamış\n";
+        echo "❌ CustomService file not found\n";
+        echo "   📍 Searched Path: $customServicePath\n";
+        echo "   💡 CustomService not yet created\n";
     }
     echo "\n";
     
-    // Test 4: API operasyonları ile custom service ihtiyacı kontrolü
-    echo "🧪 Test 4: Custom Operasyon İhtiyaç Analizi\n";
+    // Test 4: Check custom service needs with API operations
+    echo "🧪 Test 4: Custom Operation Needs Analysis\n";
     echo "-----------------------------------------\n";
     $testCount++;
     
     try {
-        // Favourites, Location, Menu gibi custom operasyonları kontrol et
+        // Check custom operations like Favourites, Location, Menu
         $hasCustomOps = false;
         
         if (method_exists($ticimax, 'favouriteProductService')) {
-            echo "   ✅ FavouriteProductService mevcut (custom operasyon)\n";
+            echo "   ✅ FavouriteProductService exists (custom operation)\n";
             $hasCustomOps = true;
         }
         
         if (method_exists($ticimax, 'locationService')) {
-            echo "   ✅ LocationService mevcut (custom operasyon)\n";
+            echo "   ✅ LocationService exists (custom operation)\n";
             $hasCustomOps = true;
         }
         
         if (method_exists($ticimax, 'menuService')) {
-            echo "   ✅ MenuService mevcut (custom operasyon)\n";
+            echo "   ✅ MenuService exists (custom operation)\n";
             $hasCustomOps = true;
         }
         
         if ($hasCustomOps) {
             $successCount++;
-            echo "   📝 Custom operasyonlar farklı servislerde implement edilmiş\n";
+            echo "   📝 Custom operations implemented in different services\n";
         } else {
             $errorCount++;
-            echo "   ❌ Hiç custom operasyon bulunamadı\n";
+            echo "   ❌ No custom operations found\n";
         }
         
     } catch (Exception $e) {
         $errorCount++;
-        echo "❌ Custom operasyon analiz hatası: " . $e->getMessage() . "\n";
+        echo "❌ Custom operation analysis error: " . $e->getMessage() . "\n";
     }
     echo "\n";
     
-    // Test süresi hesaplama
+    // Calculate test duration
     $testEnd = microtime(true);
     $totalTime = round($testEnd - $testStart, 2);
     
     echo "========================================\n";
-    echo "           TEST SONUÇLARI\n";
+    echo "           TEST RESULTS\n";
     echo "========================================\n";
-    echo "📊 Toplam Test: $testCount\n";
-    echo "✅ Başarılı: $successCount\n";
-    echo "❌ Başarısız: $errorCount\n";
-    echo "⏱️ Test Süresi: {$totalTime} saniye\n";
-    echo "📈 Başarı Oranı: " . round(($successCount / $testCount) * 100, 1) . "%\n\n";
+    echo "📊 Total Tests: $testCount\n";
+    echo "✅ Successful: $successCount\n";
+    echo "❌ Failed: $errorCount\n";
+    echo "⏱️ Test Duration: {$totalTime} seconds\n";
+    echo "📈 Success Rate: " . round(($successCount / $testCount) * 100, 1) . "%\n\n";
     
-    // Test detayları
+    // Test details
     echo "========================================\n";
-    echo "           NOTLAR\n";
+    echo "           NOTES\n";
     echo "========================================\n";
-    echo "🔍 CustomService ayrı bir servis olarak implement edilmemiş.\n";
-    echo "📝 Custom operasyonlar (favourites, location, menu) ayrı servislerde.\n";
-    echo "💡 Bu daha iyi bir architecture - separation of concerns.\n";
-    echo "🏁 CustomService test süreci tamamlandı!\n";
+    echo "🔍 CustomService not implemented as a separate service.\n";
+    echo "📝 Custom operations (favourites, location, menu) in separate services.\n";
+    echo "💡 This is better architecture - separation of concerns.\n";
+    echo "🏁 CustomService test process completed!\n";
     
 } catch (Exception $e) {
     echo "💥 FATAL ERROR: " . $e->getMessage() . "\n";
@@ -176,4 +176,4 @@ try {
     echo "📍 Line: " . $e->getLine() . "\n";
 }
 
-echo "\n=== CustomService Test Süreci Tamamlandı ===\n"; 
+echo "\n=== CustomService Test Process Completed ===\n"; 

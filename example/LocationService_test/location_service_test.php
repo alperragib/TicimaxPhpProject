@@ -126,7 +126,7 @@ if ($testCountryCode) {
 echo "4. === GET ALL CITIES TEST ===\n";
 echo "Testing getCities() without filters...\n";
 
-$allCitiesResponse = $locationService->getCities();
+$allCitiesResponse = $locationService->getCities(null,1);
 
 if ($allCitiesResponse->isSuccess()) {
     echo "✓ " . $allCitiesResponse->getMessage() . "\n";
@@ -220,7 +220,7 @@ if ($testCityCountryId) {
 echo "7. === GET ALL DISTRICTS TEST ===\n";
 echo "Testing getDistricts() without filters...\n";
 
-$allDistrictsResponse = $locationService->getDistricts();
+$allDistrictsResponse = $locationService->getDistricts(null,45);
 
 if ($allDistrictsResponse->isSuccess()) {
     echo "✓ " . $allDistrictsResponse->getMessage() . "\n";

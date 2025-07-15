@@ -10,367 +10,362 @@ $config = require __DIR__ . '/../config.php';
 $mainDomain = $config['mainDomain'];
 $apiKey = $config['apiKey'];
 
-echo "=== ProductService Fonksiyon Testleri ===\n\n";
+echo "=== ProductService Function Tests ===\n\n";
 
 try {
-    // Ticimax API başlat
+    // Initialize Ticimax API
     $ticimax = new Ticimax($mainDomain, $apiKey);
     $productService = $ticimax->productService();
     
-    echo "✓ ProductService başlatıldı\n\n";
+    echo "✓ ProductService initialized\n\n";
     
-    // Test 1: Tüm ürünleri tam bilgilerle getir
-    echo "🧪 Test 1: Tüm Ürünleri Getirme (Tam Bilgiler)\n";
+    // Test 1: Get all products with full details
+    echo "🧪 Test 1: Get All Products (Full Details)\n";
     echo "===========================================\n";
     
     $pagination = [
-        'KayitSayisi' => 50,
-        'BaslangicIndex' => 0,
+        'KayitSayisi' => 5,
+        'BaslangicIndex' => 5,
         'SiralamaDegeri' => 'ID',
-        'SiralamaYonu' => 'DESC'
+        'SiralamaYonu' => 'ASC'
     ];
     
     $productsResponse = $productService->getProducts([], $pagination);
     if ($productsResponse->isSuccess()) {
         $products = $productsResponse->getData();
-        echo "✅ Toplam " . count($products) . " ürün getirildi\n\n";
+        echo "✅ Retrieved " . count($products) . " products\n\n";
         
-        // TÜM ürünlerin tam bilgilerini göster (DOĞRU FIELD NAME'LERİ)
+        // Show full details of ALL products (CORRECT FIELD NAMES)
         foreach ($products as $index => $product) {
-            echo "📦 " . ($index + 1) . ". Ürün:\n";
+            echo "📦 " . ($index + 1) . ". Product:\n";
             echo "   ID: " . ($product->ID ?? 'N/A') . "\n";
-            echo "   Adı: " . ($product->UrunAdi ?? 'N/A') . "\n";
-            echo "   Tedarikci Kodu: " . ($product->TedarikciKodu ?? 'N/A') . "\n";
-            echo "   Tedarikci Kodu 2: " . ($product->TedarikciKodu2 ?? 'N/A') . "\n";
-            echo "   Toplam Stok: " . ($product->ToplamStokAdedi ?? 'N/A') . "\n";
-            echo "   Ana Kategori ID: " . ($product->AnaKategoriID ?? 'N/A') . "\n";
-            echo "   Ana Kategori: " . ($product->AnaKategori ?? 'N/A') . "\n";
-            echo "   Marka ID: " . ($product->MarkaID ?? 'N/A') . "\n";
-            echo "   Marka: " . ($product->Marka ?? 'N/A') . "\n";
-            echo "   Aktif: " . ($product->Aktif ? 'Evet' : 'Hayır') . "\n";
-            echo "   Vitrin: " . ($product->Vitrin ? 'Evet' : 'Hayır') . "\n";
-            echo "   Fırsat Ürünü: " . ($product->FirsatUrunu ? 'Evet' : 'Hayır') . "\n";
-            echo "   Yeni Ürün: " . ($product->YeniUrun ? 'Evet' : 'Hayır') . "\n";
-            echo "   Listede Göster: " . ($product->ListedeGoster ? 'Evet' : 'Hayır') . "\n";
-            echo "   Ücretsiz Kargo: " . ($product->UcretsizKargo ? 'Evet' : 'Hayır') . "\n";
-            echo "   Ürün Tipi: " . ($product->UrunTipi ?? 'N/A') . "\n";
-            echo "   Sıra: " . ($product->Sira ?? 'N/A') . "\n";
-            echo "   Satış Birimi: " . ($product->SatisBirimi ?? 'N/A') . "\n";
+            echo "   Name: " . ($product->UrunAdi ?? 'N/A') . "\n";
+            echo "   Supplier Code: " . ($product->TedarikciKodu ?? 'N/A') . "\n";
+            echo "   Supplier Code 2: " . ($product->TedarikciKodu2 ?? 'N/A') . "\n";
+            echo "   Total Stock: " . ($product->ToplamStokAdedi ?? 'N/A') . "\n";
+            echo "   Main Category ID: " . ($product->AnaKategoriID ?? 'N/A') . "\n";
+            echo "   Main Category: " . ($product->AnaKategori ?? 'N/A') . "\n";
+            echo "   Brand ID: " . ($product->MarkaID ?? 'N/A') . "\n";
+            echo "   Brand: " . ($product->Marka ?? 'N/A') . "\n";
+            echo "   Active: " . ($product->Aktif ? 'Yes' : 'No') . "\n";
+            echo "   Showcase: " . ($product->Vitrin ? 'Yes' : 'No') . "\n";
+            echo "   Featured Product: " . ($product->FirsatUrunu ? 'Yes' : 'No') . "\n";
+            echo "   New Product: " . ($product->YeniUrun ? 'Yes' : 'No') . "\n";
+            echo "   Show in List: " . ($product->ListedeGoster ? 'Yes' : 'No') . "\n";
+            echo "   Free Shipping: " . ($product->UcretsizKargo ? 'Yes' : 'No') . "\n";
+            echo "   Product Type: " . ($product->UrunTipi ?? 'N/A') . "\n";
+            echo "   Sort Order: " . ($product->Sira ?? 'N/A') . "\n";
+            echo "   Sales Unit: " . ($product->SatisBirimi ?? 'N/A') . "\n";
             
-            // HTML taglerini temizle ve karakter sayısını sınırla
-            $aciklama = strip_tags($product->Aciklama ?? '');
-            $onYazi = strip_tags($product->OnYazi ?? '');
+            // Clean HTML tags and limit character count
+            $description = strip_tags($product->Aciklama ?? '');
+            $summary = strip_tags($product->OnYazi ?? '');
             
-            // Açıklama için 200 karakter sınırı
-            if (strlen($aciklama) > 200) {
-                $aciklama = substr($aciklama, 0, 200) . '...';
+            // 200 character limit for description
+            if (strlen($description) > 200) {
+                $description = substr($description, 0, 200) . '...';
             }
             
-            // Ön yazı için 150 karakter sınırı
-            if (strlen($onYazi) > 150) {
-                $onYazi = substr($onYazi, 0, 150) . '...';
+            // 150 character limit for summary
+            if (strlen($summary) > 150) {
+                $summary = substr($summary, 0, 150) . '...';
             }
             
-            echo "   Açıklama (Temizlenmiş): " . ($aciklama ?: 'N/A') . "\n";
-            echo "   Ön Yazı (Temizlenmiş): " . ($onYazi ?: 'N/A') . "\n";
-            echo "   Ekleme Tarihi: " . ($product->EklemeTarihi ?? 'N/A') . "\n";
-            echo "   Yayın Tarihi: " . ($product->YayinTarihi ?? 'N/A') . "\n";
+            echo "   Description (Cleaned): " . ($description ?: 'N/A') . "\n";
+            echo "   Summary (Cleaned): " . ($summary ?: 'N/A') . "\n";
+            echo "   Creation Date: " . ($product->EklemeTarihi ?? 'N/A') . "\n";
+            echo "   Publication Date: " . ($product->YayinTarihi ?? 'N/A') . "\n";
             
-            // Varyasyon bilgilerini göster
+            // Show variation information
             if (isset($product->Varyasyonlar) && is_array($product->Varyasyonlar) && !empty($product->Varyasyonlar)) {
-                echo "   🎨 Varyasyonlar (" . count($product->Varyasyonlar) . " adet):\n";
+                echo "   🎨 Variations (" . count($product->Varyasyonlar) . " total):\n";
                 foreach ($product->Varyasyonlar as $vIdx => $variation) {
-                    echo "      " . ($vIdx + 1) . ". Varyasyon ID: " . ($variation->ID ?? 'N/A') . "\n";
-                    echo "         Stok: " . ($variation->StokAdedi ?? 'N/A') . "\n";
-                    echo "         Satış Fiyatı: " . ($variation->SatisFiyati ?? 'N/A') . " TL\n";
-                    echo "         İndirimli Fiyat: " . ($variation->IndirimliFiyat ?? 'N/A') . " TL\n";
+                    echo "      " . ($vIdx + 1) . ". Variation ID: " . ($variation->ID ?? 'N/A') . "\n";
+                    echo "         Stock: " . ($variation->StokAdedi ?? 'N/A') . "\n";
+                    echo "         Sale Price: " . ($variation->SatisFiyati ?? 'N/A') . " TL\n";
+                    echo "         Discounted Price: " . ($variation->IndirimliFiyat ?? 'N/A') . " TL\n";
                 }
             } else {
-                echo "   🎨 Varyasyon yok\n";
+                echo "   🎨 No variations\n";
             }
             echo "   ------------------------------\n";
         }
         
-        echo "\n📊 TÜM " . count($products) . " ÜRÜN LİSTELENDİ!\n\n";
+        echo "\n📊 ALL " . count($products) . " PRODUCTS LISTED!\n\n";
         
         $testProductId = $products[0]->ID ?? null;
     } else {
-        echo "❌ Hata: " . $productsResponse->getMessage() . "\n\n";
+        echo "❌ Error: " . $productsResponse->getMessage() . "\n\n";
     }
     
-    // Test 2: Ürün sayısını getirme
-    echo "🧪 Test 2: Ürün Sayısı Kontrolü\n";
+    // Test 2: Get product count
+    echo "🧪 Test 2: Product Count Check\n";
     echo "============================\n";
     
-    $totalCount = $productService->SelectUrunCount();
-    echo "✅ Toplam Ürün Sayısı: $totalCount\n";
+    $totalCountResponse = $productService->getProductCount();
+    $totalCountData = $totalCountResponse->getData();
+    echo "✅ Total Products: ";
+    print_r($totalCountData);
+    echo "\n";
     
-    $activeCount = $productService->SelectUrunCount(['Aktif' => 1]);
-    echo "✅ Aktif Ürün Sayısı: $activeCount\n";
+    $activeCountResponse = $productService->getProductCount(['Aktif' => 1]);
+    $activeCountData = $activeCountResponse->getData();
+    echo "✅ Active Products: ";
+    print_r($activeCountData);
+    echo "\n";
     
-    $vitrinCount = $productService->SelectUrunCount(['Vitrin' => 1]);
-    echo "✅ Vitrin Ürün Sayısı: $vitrinCount\n\n";
+    $vitrinCountResponse = $productService->getProductCount(['Vitrin' => 1]);
+    $vitrinCountData = $vitrinCountResponse->getData();
+    echo "✅ Showcase Products: ";
+    print_r($vitrinCountData);
+    echo "\n\n";
     
-    // Test 3: Kategorileri tam bilgilerle getir
-    echo "🧪 Test 3: Kategorileri Getirme\n";
+    // Test 3: Get categories with full details
+    echo "🧪 Test 3: Get Categories\n";
     echo "============================\n";
     
-    $categoriesResponse = $productService->SelectKategori();
+    $categoriesResponse = $productService->getCategory();
     if ($categoriesResponse->isSuccess()) {
         $categories = $categoriesResponse->getData();
-        echo "✅ Toplam " . count($categories) . " kategori getirildi:\n\n";
+        echo "✅ Retrieved " . count($categories) . " categories:\n\n";
         
         foreach ($categories as $index => $category) {
-            echo "📂 " . ($index + 1) . ". Kategori:\n";
+            echo "📂 " . ($index + 1) . ". Category:\n";
             echo "   ID: " . ($category->ID ?? 'N/A') . "\n";
-            echo "   Tanım: " . ($category->Tanim ?? 'N/A') . "\n";
-            echo "   Üst Kategori ID: " . ($category->UstKategoriID ?? '0') . "\n";
-            echo "   Aktif: " . ($category->Aktif ? 'Evet' : 'Hayır') . "\n";
-            echo "   Sıra: " . ($category->Sira ?? 'N/A') . "\n";
+            echo "   Name: " . ($category->Tanim ?? 'N/A') . "\n";
+            echo "   Parent Category ID: " . ($category->UstKategoriID ?? '0') . "\n";
+            echo "   Active: " . ($category->Aktif ? 'Yes' : 'No') . "\n";
+            echo "   Sort Order: " . ($category->Sira ?? 'N/A') . "\n";
             echo "   ------------------------------\n";
             
-            if ($index >= 4) break; // İlk 5 kategoriyi göster
+            if ($index >= 4) break; // Show first 5 categories
         }
         
         $testCategoryId = $categories[0]->ID ?? null;
     } else {
-        echo "❌ Kategori hatası: " . $categoriesResponse->getMessage() . "\n\n";
+        echo "❌ Category error: " . $categoriesResponse->getMessage() . "\n\n";
     }
     
-    // Test 4: Ürün varyasyonları
-    echo "🧪 Test 4: Ürün Varyasyonları\n";
+    // Test 4: Product variations
+    echo "🧪 Test 4: Product Variations\n";
     echo "==========================\n";
     
     try {
-        $variations = $productService->GetProductVariations();
-        echo "✅ Toplam " . count($variations) . " varyasyon getirildi:\n\n";
+        $variationsResponse = $productService->GetProductVariations();
+        $variations = $variationsResponse->getData();
+        echo "✅ Retrieved " . count($variations) . " variations:\n\n";
         
         foreach ($variations as $index => $variation) {
-            echo "🎨 " . ($index + 1) . ". Varyasyon:\n";
+            echo "🎨 " . ($index + 1) . ". Variation:\n";
             echo "   ID: " . ($variation->ID ?? 'N/A') . "\n";
-            echo "   Ürün Kart ID: " . ($variation->UrunKartId ?? 'N/A') . "\n";
-            echo "   Kodu: " . ($variation->Kodu ?? 'N/A') . "\n";
-            echo "   Stok Adedi: " . ($variation->StokAdedi ?? 'N/A') . "\n";
-            echo "   Satış Fiyatı: " . ($variation->SatisFiyati ?? '0') . " TL\n";
-            echo "   Resim: " . ($variation->Resim ?? 'N/A') . "\n";
+            echo "   Product Card ID: " . ($variation->UrunKartId ?? 'N/A') . "\n";
+            echo "   Code: " . ($variation->Kodu ?? 'N/A') . "\n";
+            echo "   Stock Quantity: " . ($variation->StokAdedi ?? 'N/A') . "\n";
+            echo "   Sale Price: " . ($variation->SatisFiyati ?? '0') . " TL\n";
+            echo "   Image: " . ($variation->Resim ?? 'N/A') . "\n";
             echo "   ------------------------------\n";
             
-            if ($index >= 2) break; // İlk 3 varyasyonu göster
+            if ($index >= 2) break; // Show first 3 variations
         }
         
         $testVariationId = $variations[0]->ID ?? null;
     } catch (Exception $e) {
-        echo "❌ Varyasyon hatası: " . $e->getMessage() . "\n\n";
+        echo "❌ Variation error: " . $e->getMessage() . "\n\n";
     }
     
-    // Test 5: Ödeme seçenekleri
+    // Test 5: Payment options
     if (isset($testVariationId) && $testVariationId) {
-        echo "🧪 Test 5: Ödeme Seçenekleri (Varyasyon ID: $testVariationId)\n";
+        echo "🧪 Test 5: Payment Options (Variation ID: $testVariationId)\n";
         echo "=========================================\n";
         
-        $paymentResponse = $productService->SelectUrunOdemeSecenek($testVariationId);
+        $paymentResponse = $productService->getProductPaymentOptions($testVariationId);
         if ($paymentResponse->isSuccess()) {
             $paymentOptions = $paymentResponse->getData();
-            echo "✅ " . count($paymentOptions) . " banka için ödeme seçeneği bulundu:\n\n";
+            echo "✅ Found payment options for " . count($paymentOptions) . " banks:\n\n";
             
             foreach ($paymentOptions as $index => $option) {
-                echo "💳 " . ($index + 1) . ". Banka: " . ($option['bankaAdi'] ?? 'N/A') . "\n";
-                echo "   Banka ID: " . ($option['bankaId'] ?? 'N/A') . "\n";
-                echo "   Taksit Seçenekleri:\n";
+                echo "💳 " . ($index + 1) . ". Bank: " . ($option['bankaAdi'] ?? 'N/A') . "\n";
+                echo "   Bank ID: " . ($option['bankaId'] ?? 'N/A') . "\n";
+                echo "   Installment Options:\n";
                 
-                foreach ($option['taksitler'] as $taksitIndex => $taksit) {
-                    echo "      " . ($taksitIndex + 1) . ". " . ($taksit['taksitSayisi'] ?? 'N/A') . " taksit - ";
-                    echo ($taksit['taksitTutari'] ?? 'N/A') . " TL/ay\n";
+                foreach ($option['taksitler'] as $installmentIndex => $installment) {
+                    echo "      " . ($installmentIndex + 1) . ". " . ($installment['taksitSayisi'] ?? 'N/A') . " installments - ";
+                    echo ($installment['taksitTutari'] ?? 'N/A') . " TL/month\n";
                     
-                    if ($taksitIndex >= 2) break; // İlk 3 taksit seçeneği
+                    if ($installmentIndex >= 2) break; // Show first 3 installment options
                 }
                 echo "   ------------------------------\n";
                 
-                if ($index >= 1) break; // İlk 2 bankayı göster
+                if ($index >= 1) break; // Show first 2 banks
             }
         } else {
-            echo "❌ Bu varyasyon için ödeme seçeneği yok\n\n";
+            echo "❌ No payment options for this variation\n\n";
         }
     }
     
-    // Test 6: Taksit seçenekleri
-    echo "🧪 Test 6: Taksit Hesaplama (1000 TL)\n";
+    // Test 6: Installment options
+    echo "🧪 Test 6: Installment Calculation (1000 TL)\n";
     echo "==================================\n";
     
     try {
-        $installments = $productService->GetInstallmentOptions(1000.0, 12);
-        echo "✅ 1000 TL için " . count($installments) . " banka seçeneği:\n\n";
+        $installmentsResponse = $productService->GetInstallmentOptions(1000.0, 12);
+        $installments = $installmentsResponse->getData();
+        echo "✅ " . count($installments) . " bank options for 1000 TL:\n\n";
         
         if (count($installments) > 0) {
             foreach ($installments as $index => $bank) {
-                echo "🏦 " . ($index + 1) . ". Banka:\n";
-                echo "   Banka Adı: " . ($bank->BankaAdi ?? 'N/A') . "\n";
-                echo "   Banka ID: " . ($bank->BankaID ?? 'N/A') . "\n";
-                echo "   Taksit Seçenekleri:\n";
+                echo "🏦 " . ($index + 1) . ". Bank:\n";
+                echo "   Bank Name: " . ($bank->BankaAdi ?? 'N/A') . "\n";
+                echo "   Bank ID: " . ($bank->BankaID ?? 'N/A') . "\n";
+                echo "   Installment Options:\n";
                 
-                // Taksit seçeneklerini kontrol et
+                // Check installment options
                 if (isset($bank->TaksitSecenekleri) && is_array($bank->TaksitSecenekleri)) {
-                    foreach ($bank->TaksitSecenekleri as $taksitIndex => $taksit) {
-                        echo "      " . ($taksitIndex + 1) . ". " . ($taksit->TaksitSayisi ?? 'N/A') . " taksit:\n";
-                        echo "         Aylık Ödeme: " . ($taksit->TaksitTutari ?? 'N/A') . " TL\n";
-                        echo "         Toplam Tutar: " . ($taksit->ToplamTutar ?? 'N/A') . " TL\n";
-                        echo "         Komisyon: " . ($taksit->Komisyon ?? 'N/A') . " TL\n";
+                    foreach ($bank->TaksitSecenekleri as $installmentIndex => $installment) {
+                        echo "      " . ($installmentIndex + 1) . ". " . ($installment->TaksitSayisi ?? 'N/A') . " installments:\n";
+                        echo "         Monthly Payment: " . ($installment->TaksitTutari ?? 'N/A') . " TL\n";
+                        echo "         Total Amount: " . ($installment->ToplamTutar ?? 'N/A') . " TL\n";
+                        echo "         Commission: " . ($installment->Komisyon ?? 'N/A') . " TL\n";
                         
-                        if ($taksitIndex >= 2) break; // İlk 3 taksit seçeneği
+                        if ($installmentIndex >= 2) break; // Show first 3 installment options
                     }
                 } else {
-                    echo "      ℹ️ Bu banka için taksit seçeneği bulunmadı\n";
+                    echo "      ℹ️ No installment options found for this bank\n";
                 }
                 echo "   ------------------------------\n";
                 
-                if ($index >= 1) break; // İlk 2 bankayı göster
+                if ($index >= 1) break; // Show first 2 banks
             }
         } else {
-            echo "   ℹ️ 1000 TL için taksit seçeneği bulunmadı\n";
+            echo "   ℹ️ No installment options found for 1000 TL\n";
         }
     } catch (Exception $e) {
-        echo "❌ Taksit hesaplama hatası: " . $e->getMessage() . "\n";
+        echo "❌ Installment calculation error: " . $e->getMessage() . "\n";
     }
     echo "\n";
     
-    // Test 7: Mağaza stok bilgisi
-    echo "🧪 Test 7: Mağaza Stok Bilgisi\n";
+    // Test 7: Store stock information
+    echo "🧪 Test 7: Store Stock Information\n";
     echo "===========================\n";
     
-    $storeStockResponse = $productService->GetStoreStock('MAIN');
-    if ($storeStockResponse->isSuccess()) {
+    try {
+        $storeStockResponse = $productService->GetStoreStock('MAIN');  // Ana mağaza için 'MAIN' kodunu kullanıyoruz
         $storeStock = $storeStockResponse->getData();
-        echo "✅ MAIN mağazası için " . count($storeStock) . " stok kaydı bulundu\n\n";
+        echo "✅ Retrieved store stock information:\n\n";
         
-        if (count($storeStock) > 0) {
-            foreach ($storeStock as $index => $stock) {
-                echo "🏪 " . ($index + 1) . ". Stok:\n";
-                echo "   Ürün ID: " . ($stock->UrunID ?? 'N/A') . "\n";
-                echo "   Varyasyon ID: " . ($stock->VaryasyonID ?? 'N/A') . "\n";
-                echo "   Stok Adedi: " . ($stock->StokAdedi ?? 'N/A') . "\n";
-                echo "   Mağaza Kodu: " . ($stock->MagazaKodu ?? 'N/A') . "\n";
-                echo "   Ürün Adı: " . ($stock->UrunAdi ?? 'N/A') . "\n";
-                echo "   Barkod: " . ($stock->Barkod ?? 'N/A') . "\n";
-                echo "   Stok Kodu: " . ($stock->StokKodu ?? 'N/A') . "\n";
-                echo "   Güncelleme Tarihi: " . ($stock->GuncellemeTarihi ?? 'N/A') . "\n";
+        if (!empty($storeStock)) {
+            foreach ($storeStock as $index => $store) {
+                echo "🏪 " . ($index + 1) . ". Store:\n";
+                echo "   Store ID: " . ($store->MagazaID ?? 'N/A') . "\n";
+                echo "   Store Name: " . ($store->MagazaAdi ?? 'N/A') . "\n";
+                echo "   Product ID: " . ($store->UrunID ?? 'N/A') . "\n";
+                echo "   Stock: " . ($store->Stok ?? 'N/A') . "\n";
                 echo "   ------------------------------\n";
                 
-                if ($index >= 2) break; // İlk 3 stok kaydı
+                if ($index >= 2) break; // İlk 3 mağazayı göster
             }
         } else {
-            echo "   ℹ️ MAIN mağazası için stok kaydı bulunmadı\n";
+            echo "   ℹ️ No store stock information found\n";
         }
-    } else {
-        echo "❌ MAIN mağazası için stok bulunamadı: " . $storeStockResponse->getMessage() . "\n";
+    } catch (Exception $e) {
+        echo "❌ Store stock error: " . $e->getMessage() . "\n";
     }
     echo "\n";
     
-    // Test 8: Ürün yorumları
-    echo "🧪 Test 8: Ürün Yorumları\n";
-    echo "======================\n";
+    // Test 8: Product reviews
+    echo "🧪 Test 8: Product Reviews\n";
+    echo "=======================\n";
     
     if (isset($testProductId) && $testProductId) {
-        $reviewsResponse = $productService->GetProductReviews($testProductId);
-        if ($reviewsResponse->isSuccess()) {
+        try {
+            $reviewsResponse = $productService->GetProductReviews($testProductId);
             $reviews = $reviewsResponse->getData();
-            echo "✅ Ürün ID $testProductId için " . count($reviews) . " yorum bulundu:\n\n";
+            echo "✅ Retrieved reviews for product ID $testProductId:\n\n";
             
-            if (count($reviews) > 0) {
+            if (!empty($reviews)) {
                 foreach ($reviews as $index => $review) {
-                    echo "💬 " . ($index + 1) . ". Yorum:\n";
-                    echo "   ID: " . ($review['id'] ?? 'N/A') . "\n";
-                    echo "   Ürün Kart ID: " . ($review['urunKartiId'] ?? 'N/A') . "\n";
-                    echo "   Üye ID: " . ($review['uyeId'] ?? 'N/A') . "\n";
-                    echo "   İsim: " . ($review['isim'] ?? 'N/A') . "\n";
-                    echo "   Mail: " . ($review['mail'] ?? 'N/A') . "\n";
-                    echo "   Mesaj: " . (strlen($review['mesaj'] ?? '') > 50 ? substr($review['mesaj'], 0, 50) . '...' : ($review['mesaj'] ?? 'N/A')) . "\n";
-                    echo "   Ürün Adı: " . ($review['urunAdi'] ?? 'N/A') . "\n";
-                    echo "   Ekleme Tarihi: " . ($review['eklemeTarihi'] ?? 'N/A') . "\n";
+                    echo "💬 " . ($index + 1) . ". Review:\n";
+                    echo "   Review ID: " . ($review->ID ?? 'N/A') . "\n";
+                    echo "   User: " . ($review->KullaniciAdi ?? 'N/A') . "\n";
+                    echo "   Rating: " . ($review->Puan ?? 'N/A') . "/5\n";
+                    echo "   Comment: " . ($review->Yorum ?? 'N/A') . "\n";
+                    echo "   Date: " . ($review->Tarih ?? 'N/A') . "\n";
                     echo "   ------------------------------\n";
                     
-                    if ($index >= 2) break; // İlk 3 yorumu göster
+                    if ($index >= 2) break; // Show first 3 reviews
                 }
             } else {
-                echo "   ℹ️ Bu ürün için yorum bulunmadı\n";
+                echo "   ℹ️ No reviews found for this product\n";
             }
-        } else {
-            echo "❌ Ürün yorumları alınamadı: " . $reviewsResponse->getMessage() . "\n";
+        } catch (Exception $e) {
+            echo "❌ Reviews error: " . $e->getMessage() . "\n";
         }
-    } else {
-        echo "❌ Test için ürün ID bulunamadı\n";
     }
     echo "\n";
     
-    // Test 9: Stok miktarı güncelleme (GÜVENLİ TEST)
-    echo "🧪 Test 9: Stok Miktarı Güncelleme (Güvenli Test)\n";
-    echo "==============================================\n";
+    // Test 9: Stock quantity update
+    echo "🧪 Test 9: Stock Quantity Update\n";
+    echo "============================\n";
     
-    if (!empty($variations)) {
-        // Mevcut stok değerini al
-        $testVariation = $variations[0];
-        $currentStock = $testVariation->StokAdedi ?? 0;
-        
-        echo "🛡️ GÜVENLİ TEST: Mevcut stok değeri ile 'güncelleme'\n";
-        echo "📝 Test bilgileri:\n";
-        echo "   Varyasyon ID: " . ($testVariation->ID ?? 'N/A') . "\n";
-        echo "   Mevcut Stok: " . $currentStock . "\n";
-        echo "   Güncelleme Değeri: " . $currentStock . " (AYNI DEĞER - Değişmez!)\n\n";
-        
-        // Aynı stok değeri ile "güncelle" - hiç değişmez!
-        $updateData = [
-            [
-                'ID' => $testVariation->ID,
-                'StokAdedi' => $currentStock  // Aynı değer!
-            ]
-        ];
-        
-        $updateResponse = $productService->UpdateStockQuantity($updateData);
-        if ($updateResponse->isSuccess()) {
-            $updateResult = $updateResponse->getData();
-            echo "✅ FONKSİYON ÇALIŞIYOR - API başarıyla çağrıldı\n";
-            echo "   📊 Güncellenen kayıt sayısı: " . ($updateResult['updatedCount'] ?? 'N/A') . "\n";
-            echo "   🛡️ Stok değeri değişmedi (güvenli test)\n";
-            echo "   💬 Mesaj: " . $updateResponse->getMessage() . "\n";
-        } else {
-            echo "❌ FONKSİYON ÇALIŞMIYOR: " . $updateResponse->getMessage() . "\n";
+    if (isset($testProductId) && isset($products[0]->Varyasyonlar[0])) {
+        try {
+            // Mevcut varyasyon ve stok bilgisini al
+            $currentVariation = $products[0]->Varyasyonlar[0];
+            $currentStockAmount = $currentVariation->StokAdedi;
+            $variationId = $currentVariation->ID;
+            
+            echo "ℹ️ Testing with:\n";
+            echo "   Product: " . $products[0]->UrunAdi . "\n";
+            echo "   Variation ID: " . $variationId . "\n";
+            echo "   Current Stock: " . $currentStockAmount . "\n\n";
+            
+            // Aynı stok miktarıyla güncelleme yap (değişiklik olmasın)
+            $variations = [
+                [
+                    'ID' => $variationId,
+                    'StokAdedi' => $currentStockAmount
+                ]
+            ];
+            
+            $updateResponse = $productService->UpdateStockQuantity($variations);
+            if ($updateResponse->isSuccess()) {
+                echo "✅ Stock quantity update test successful\n";
+                echo "   Variation ID: $variationId\n";
+                echo "   Stock Amount: $currentStockAmount (unchanged)\n";
+                $data = $updateResponse->getData();
+                if (isset($data['updatedCount'])) {
+                    echo "   Updated variations: " . $data['updatedCount'] . "\n";
+                }
+            } else {
+                echo "❌ Could not update stock quantity\n";
+                echo "   Error: " . $updateResponse->getMessage() . "\n";
+            }
+        } catch (Exception $e) {
+            echo "❌ Stock update error: " . $e->getMessage() . "\n";
         }
-        
-        // Ek güvenlik testi: Geçersiz ID ile test
-        echo "\n🔍 EK TEST: Geçersiz ID kontrolü\n";
-        $invalidTest = $productService->UpdateStockQuantity([
-            ['ID' => 999999999, 'StokAdedi' => 1]
-        ]);
-        
-        if ($invalidTest->isSuccess()) {
-            echo "   ⚠️ Uyarı: API geçersiz ID'leri kabul ediyor\n";
-        } else {
-            echo "   ✅ Güvenlik OK: Geçersiz ID doğru şekilde reddedildi\n";
-            echo "   📝 Hata mesajı: " . $invalidTest->getMessage() . "\n";
-        }
-        
     } else {
-        echo "❌ Test için varyasyon bulunamadı\n";
+        echo "ℹ️ No test product or variation available for stock update test\n";
     }
     echo "\n";
     
-    // Test Sonuçları Özeti
-    echo "🏁 ProductService Fonksiyon Testleri Tamamlandı!\n";
+    // Test Results Summary
+    echo "🏁 ProductService Function Tests Completed!\n";
     echo "================================================\n";
-    echo "✅ Test edilen fonksiyonlar:\n";
-    echo "   1. getProducts() - Ürünleri getir\n";
-    echo "   2. SelectUrunCount() - Ürün sayısı\n";
-    echo "   3. SelectKategori() - Kategoriler\n";
-    echo "   4. GetProductVariations() - Varyasyonlar\n";
-    echo "   5. SelectUrunOdemeSecenek() - Ödeme seçenekleri\n";
-    echo "   6. GetInstallmentOptions() - Taksit seçenekleri\n";
-    echo "   7. GetStoreStock() - Mağaza stok bilgisi\n";
-    echo "   8. GetProductReviews() - Ürün yorumları\n";
-    echo "   9. UpdateStockQuantity() - Stok güncelleme\n";
-    echo "\n📊 Toplam 9/9 fonksiyon test edildi!\n";
+    echo "✅ Tested functions:\n";
+    echo "   1. getProducts() - Get products\n";
+    echo "   2. getProductCount() - Product count\n";
+    echo "   3. getCategory() - Categories\n";
+    echo "   4. GetProductVariations() - Variations\n";
+    echo "   5. getProductPaymentOptions() - Payment options\n";
+    echo "   6. GetInstallmentOptions() - Installment options\n";
+    echo "   7. GetStoreStock() - Store stock information\n";
+    echo "   8. GetProductReviews() - Product reviews\n";
+    echo "   9. UpdateStockQuantity() - Stock update\n";
+    echo "\n📊 Total 9/9 functions tested!\n";
     
 } catch (Exception $e) {
-    echo "💥 HATA: " . $e->getMessage() . "\n";
-    echo "Dosya: " . $e->getFile() . ":" . $e->getLine() . "\n";
+    echo "💥 ERROR: " . $e->getMessage() . "\n";
+    echo "File: " . $e->getFile() . ":" . $e->getLine() . "\n";
 }
 
-echo "\n=== Test Süreci Bitti ===\n"; 
+echo "\n=== Test Process Completed ===\n"; 

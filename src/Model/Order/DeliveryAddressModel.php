@@ -12,7 +12,7 @@ use AlperRagib\Ticimax\Model\BaseModel;
  */
 class DeliveryAddressModel extends BaseModel
 {
-    // Tüm işlevsellik BaseModel'den geliyor:
+    // All functionality comes from BaseModel:
     // - __construct
     // - convertToArray
     // - __get, __set, __isset

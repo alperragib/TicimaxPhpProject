@@ -10,8 +10,8 @@ use AlperRagib\Ticimax\Model\Category\CategoryModel;
 $userData = [
     'ID' => 1,
     'Email' => 'test@example.com',
-    'Ad' => 'Test',
-    'Soyad' => 'User'
+    'FirstName' => 'Test',
+    'LastName' => 'User'
 ];
 $user = new UserModel($userData);
 var_dump("User Test:");
@@ -23,24 +23,24 @@ echo "\n";
 // Test BrandModel
 $brandData = [
     'ID' => 1,
-    'Tanim' => 'Test Brand',
-    'Aciklama' => 'Test Description'
+    'Name' => 'Test Brand',
+    'Description' => 'Test Description'
 ];
 $brand = new BrandModel($brandData);
 var_dump("Brand Test:");
 var_dump($brand->ID);
-var_dump($brand->Tanim);
+var_dump($brand->Name);
 var_dump($brand->toArray());
 echo "\n";
 
 // Test CategoryModel
 $categoryData = [
     'ID' => 1,
-    'Tanim' => 'Test Category',
+    'Name' => 'Test Category',
     'ParentID' => 0
 ];
 $category = new CategoryModel($categoryData);
 var_dump("Category Test:");
 var_dump($category->ID);
-var_dump($category->Tanim);
+var_dump($category->Name);
 var_dump($category->toArray()); 

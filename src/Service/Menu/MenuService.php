@@ -53,7 +53,7 @@ class MenuService
 
                 // Check for API error
                 if ($result->IsError ?? false) {
-                    return ApiResponse::error($result->ErrorMessage ?? 'Bilinmeyen bir hata oluştu');
+                    return ApiResponse::error($result->ErrorMessage ?? 'Unknown error occurred');
                 }
 
                 // Process menus
@@ -71,13 +71,13 @@ class MenuService
                     }
                 }
 
-                return ApiResponse::success($menus, 'Menüler başarıyla getirildi.');
+                return ApiResponse::success($menus, 'Menus retrieved successfully.');
             }
 
-            return ApiResponse::success([], 'Menü bulunamadı.');
+            return ApiResponse::success([], 'No menus found.');
 
         } catch (SoapFault $e) {
-            return ApiResponse::error('Menüler getirilirken bir hata oluştu: ' . $e->getMessage());
+            return ApiResponse::error('Error retrieving menus: ' . $e->getMessage());
         }
     }
     

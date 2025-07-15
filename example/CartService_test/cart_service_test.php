@@ -10,33 +10,33 @@ $config = require __DIR__ . '/../config.php';
 $mainDomain = $config['mainDomain'];
 $apiKey = $config['apiKey'];
 
-echo "=== CartService Test Süreci Başlıyor ===\n\n";
+echo "=== CartService Test Process Starting ===\n\n";
 
-// Test başlangıç zamanı
+// Test start time
 $testStart = microtime(true);
 
 try {
-    // Ticimax API'yi başlat
+    // Initialize Ticimax API
     $ticimax = new Ticimax($mainDomain, $apiKey);
     $cartService = $ticimax->cartService();
     
-    echo "✓ Ticimax CartService başlatıldı\n\n";
+    echo "✓ Ticimax CartService initialized\n\n";
     
-    // Test parametreleri
-    $testUserId = 1; // Test kullanıcı ID
+    // Test parameters
+    $testUserId = 1; // Test user ID
     $testCampaignId = 0;
     
-    // Test sayaçları
+    // Test counters
     $testCount = 0;
     $successCount = 0;
     $errorCount = 0;
     
     echo "========================================\n";
-    echo "           SEPET TESTLERİ\n";
+    echo "           CART TESTS\n";
     echo "========================================\n\n";
     
-    // Test 1: Yeni sepet oluşturma
-    echo "🧪 Test 1: Yeni Sepet Oluşturma\n";
+    // Test 1: Create new cart
+    echo "🧪 Test 1: Create New Cart\n";
     echo "------------------------------\n";
     $testCount++;
     
@@ -45,24 +45,24 @@ try {
         if ($createResponse->isSuccess()) {
             $successCount++;
             $newCart = $createResponse->getData();
-            echo "✅ Sepet başarıyla oluşturuldu\n";
-            echo "   📋 Sepet ID: " . ($newCart['SepetID'] ?? 'N/A') . "\n";
-            echo "   💰 Genel Toplam: " . ($newCart['GenelToplam'] ?? '0') . " TL\n";
-            echo "   📦 Ürün Adedi: " . ($newCart['ToplamUrunAdedi'] ?? '0') . "\n";
+            echo "✅ Cart created successfully\n";
+            echo "   📋 Cart ID: " . ($newCart['SepetID'] ?? 'N/A') . "\n";
+            echo "   💰 Total Amount: " . ($newCart['GenelToplam'] ?? '0') . " TL\n";
+            echo "   📦 Product Count: " . ($newCart['ToplamUrunAdedi'] ?? '0') . "\n";
             
             $createdCartId = $newCart['SepetID'] ?? null;
         } else {
             $errorCount++;
-            echo "❌ Sepet oluşturulamadı: " . $createResponse->getMessage() . "\n";
+            echo "❌ Could not create cart: " . $createResponse->getMessage() . "\n";
         }
     } else {
         $errorCount++;
-        echo "❌ Geçersiz yanıt formatı\n";
+        echo "❌ Invalid response format\n";
     }
     echo "\n";
     
-    // Test 2: Sepet getirme (Kullanıcı ID ile)
-    echo "🧪 Test 2: Kullanıcı Sepeti Getirme\n";
+    // Test 2: Get cart (by User ID)
+    echo "🧪 Test 2: Get User's Cart\n";
     echo "--------------------------------\n";
     $testCount++;
     
@@ -71,35 +71,35 @@ try {
         if ($getResponse->isSuccess()) {
             $successCount++;
             $cart = $getResponse->getData();
-            echo "✅ Kullanıcı sepeti başarıyla getirildi\n";
-            echo "   📋 Sepet ID: " . ($cart->ID ?? 'N/A') . "\n";
-            echo "   💰 Genel Toplam: " . ($cart->GenelToplam ?? '0') . " TL\n";
-            echo "   📦 Ürün Adedi: " . ($cart->ToplamUrunAdedi ?? '0') . "\n";
-            echo "   💳 Para Birimi: " . ($cart->SepetParaBirimiDilKodu ?? 'N/A') . "\n";
+            echo "✅ User's cart retrieved successfully\n";
+            echo "   📋 Cart ID: " . ($cart->ID ?? 'N/A') . "\n";
+            echo "   💰 Total Amount: " . ($cart->GenelToplam ?? '0') . " TL\n";
+            echo "   📦 Product Count: " . ($cart->ToplamUrunAdedi ?? '0') . "\n";
+            echo "   💳 Currency: " . ($cart->SepetParaBirimiDilKodu ?? 'N/A') . "\n";
             
-            // Ürünleri listele
+            // List products
             if (!empty($cart->Urunler)) {
-                echo "   🛍️ Sepetteki Ürünler:\n";
-                foreach ($cart->Urunler as $index => $urun) {
-                    echo "      " . ($index + 1) . ". Ürün ID: " . ($urun['UrunID'] ?? 'N/A') . 
-                         " - Adet: " . ($urun['Adet'] ?? 'N/A') . "\n";
+                echo "   🛍️ Products in Cart:\n";
+                foreach ($cart->Urunler as $index => $product) {
+                    echo "      " . ($index + 1) . ". Product ID: " . ($product['UrunID'] ?? 'N/A') . 
+                         " - Quantity: " . ($product['Adet'] ?? 'N/A') . "\n";
                 }
             } else {
-                echo "   📭 Sepet boş\n";
+                echo "   📭 Cart is empty\n";
             }
         } else {
             $errorCount++;
-            echo "❌ Sepet getirilemedi: " . $getResponse->getMessage() . "\n";
+            echo "❌ Could not retrieve cart: " . $getResponse->getMessage() . "\n";
         }
     } else {
         $errorCount++;
-        echo "❌ Geçersiz yanıt formatı\n";
+        echo "❌ Invalid response format\n";
     }
     echo "\n";
     
-    // Test 3: Specific sepet getirme (Sepet ID ile)
+    // Test 3: Get specific cart (by Cart ID)
     if (isset($createdCartId) && $createdCartId) {
-        echo "🧪 Test 3: Belirli Sepet ID ile Getirme\n";
+        echo "🧪 Test 3: Get Cart by Specific ID\n";
         echo "-----------------------------------\n";
         $testCount++;
         
@@ -108,22 +108,22 @@ try {
             if ($getSpecificResponse->isSuccess()) {
                 $successCount++;
                 $specificCart = $getSpecificResponse->getData();
-                echo "✅ Belirli sepet başarıyla getirildi\n";
-                echo "   📋 Sepet ID: " . ($specificCart->ID ?? 'N/A') . "\n";
-                echo "   💰 Genel Toplam: " . ($specificCart->GenelToplam ?? '0') . " TL\n";
+                echo "✅ Specific cart retrieved successfully\n";
+                echo "   📋 Cart ID: " . ($specificCart->ID ?? 'N/A') . "\n";
+                echo "   💰 Total Amount: " . ($specificCart->GenelToplam ?? '0') . " TL\n";
             } else {
                 $errorCount++;
-                echo "❌ Belirli sepet getirilemedi: " . $getSpecificResponse->getMessage() . "\n";
+                echo "❌ Could not retrieve specific cart: " . $getSpecificResponse->getMessage() . "\n";
             }
         } else {
             $errorCount++;
-            echo "❌ Geçersiz yanıt formatı\n";
+            echo "❌ Invalid response format\n";
         }
         echo "\n";
     }
     
-    // Test 4: Sepet Listesi Getirme
-    echo "🧪 Test 4: Sepet Listesi Getirme\n";
+    // Test 4: Get Cart List
+    echo "🧪 Test 4: Get Cart List\n";
     echo "------------------------------\n";
     $testCount++;
     
@@ -132,32 +132,31 @@ try {
         if ($selectResponse->isSuccess()) {
             $successCount++;
             $cartData = $selectResponse->getData();
-            $cartList = $cartData['carts'] ?? []; // API array döndürüyor, [carts] key'i var
-            echo "✅ Sepet listesi başarıyla getirildi\n";
-            echo "   📊 Toplam Sepet Sayısı: " . count($cartList) . "\n";
+            $cartList = $cartData['carts'] ?? []; // API returns array with [carts] key
+            echo "✅ Cart list retrieved successfully\n";
+            echo "   📊 Total Cart Count: " . count($cartList) . "\n";
             
-            // İlk birkaç sepeti göster
+            // Show first few carts
             $displayCount = min(3, count($cartList));
             for ($i = 0; $i < $displayCount; $i++) {
                 $cart = $cartList[$i];
-                // WebCartModel object olduğu için property access
-                echo "   " . ($i + 1) . ". Sepet ID: " . ($cart->ID ?? 'N/A') . 
+                // WebCartModel object property access
+                echo "   " . ($i + 1) . ". Cart ID: " . ($cart->ID ?? 'N/A') . 
                      " - Guid: " . ($cart->GuidSepetID ?? 'N/A') . 
-                     " - Tarih: " . ($cart->SepetTarihi ?? 'N/A') . "\n";
+                     " - Date: " . ($cart->SepetTarihi ?? 'N/A') . "\n";
             }
         } else {
             $errorCount++;
-            echo "❌ Sepet listesi getirilemedi: " . $selectResponse->getMessage() . "\n";
+            echo "❌ Could not retrieve cart list: " . $selectResponse->getMessage() . "\n";
         }
     } else {
         $errorCount++;
-        echo "❌ Sepet listesi API çağrısı başarısız\n";
+        echo "❌ Cart list API call failed\n";
     }
-
     echo "\n";
     
-    // Test 5: Web Sepet Getirme
-    echo "🧪 Test 5: Web Sepet Getirme\n";
+    // Test 5: Get Web Cart
+    echo "🧪 Test 5: Get Web Cart\n";
     echo "--------------------------\n";
     $testCount++;
     
@@ -166,38 +165,38 @@ try {
         if ($webSelectResponse->isSuccess()) {
             $successCount++;
             $webCartData = $webSelectResponse->getData();
-            echo "✅ Web sepet listesi başarıyla getirildi\n";
+            echo "✅ Web cart list retrieved successfully\n";
             
-            // stdClass object, tek sepet var
+            // stdClass object, single cart
             if (isset($webCartData->WebSepet)) {
                 $webCart = $webCartData->WebSepet;
-                echo "   📋 Web Sepet ID: " . ($webCart->ID ?? 'N/A') . "\n";
+                echo "   📋 Web Cart ID: " . ($webCart->ID ?? 'N/A') . "\n";
                 echo "   🆔 Guid: " . ($webCart->GuidSepetID ?? 'N/A') . "\n";
-                echo "   📅 Tarih: " . ($webCart->SepetTarihi ?? 'N/A') . "\n";
+                echo "   📅 Date: " . ($webCart->SepetTarihi ?? 'N/A') . "\n";
                 
-                // Ürünler var mı kontrol et
+                // Check if products exist
                 if (isset($webCart->Urunler)) {
                     if (is_object($webCart->Urunler) && isset($webCart->Urunler->WebSepetUrun)) {
-                        echo "   📦 Ürün var: Evet\n";
+                        echo "   📦 Has Products: Yes\n";
                     } else {
-                        echo "   📦 Ürün var: Hayır\n";
+                        echo "   📦 Has Products: No\n";
                     }
                 }
             } else {
-                echo "   📭 Web sepet boş\n";
+                echo "   📭 Web cart is empty\n";
             }
         } else {
             $errorCount++;
-            echo "❌ Web sepet getirilemedi: " . $webSelectResponse->getMessage() . "\n";
+            echo "❌ Could not retrieve web cart: " . $webSelectResponse->getMessage() . "\n";
         }
     } else {
         $errorCount++;
-        echo "❌ Web sepet API çağrısı başarısız\n";
+        echo "❌ Web cart API call failed\n";
     }
     echo "\n";
     
-    // Test 6: Para birimi ve dil filtreleri ile Web sepet getirme
-    echo "🧪 Test 6: Filtreli Web Sepet Getirme\n";
+    // Test 6: Get web cart with currency and language filters
+    echo "🧪 Test 6: Get Filtered Web Cart\n";
     echo "-----------------------------------\n";
     $testCount++;
     
@@ -206,28 +205,28 @@ try {
         if ($filteredWebResponse->isSuccess()) {
             $successCount++;
             $filteredWebCarts = $filteredWebResponse->getData();
-            echo "✅ Filtreli web sepet listesi başarıyla getirildi\n";
+            echo "✅ Filtered web cart list retrieved successfully\n";
             
-            // stdClass object kontrol et
+            // Check stdClass object
             if (isset($filteredWebCarts->WebSepet)) {
-                echo "   📊 TR-TL Sepet: 1 adet\n";
-                echo "   🆔 Sepet ID: " . ($filteredWebCarts->WebSepet->ID ?? 'N/A') . "\n";
+                echo "   📊 TR-TL Cart: 1 found\n";
+                echo "   🆔 Cart ID: " . ($filteredWebCarts->WebSepet->ID ?? 'N/A') . "\n";
             } else {
-                echo "   📊 TR-TL Sepet: 0 adet\n";
+                echo "   📊 TR-TL Cart: 0 found\n";
             }
-            echo "   🌐 Dil: TR, Para Birimi: TL\n";
+            echo "   🌐 Language: TR, Currency: TL\n";
         } else {
             $errorCount++;
-            echo "❌ Filtreli web sepet getirilemedi: " . $filteredWebResponse->getMessage() . "\n";
+            echo "❌ Could not retrieve filtered web cart: " . $filteredWebResponse->getMessage() . "\n";
         }
     } else {
         $errorCount++;
-        echo "❌ Geçersiz yanıt formatı\n";
+        echo "❌ Invalid response format\n";
     }
     echo "\n";
     
-    // Test 7: Hatalı kullanıcı ID ile sepet getirme
-    echo "🧪 Test 7: Hatalı Kullanıcı ID Testi\n";
+    // Test 7: Get cart with invalid user ID
+    echo "🧪 Test 7: Invalid User ID Test\n";
     echo "---------------------------------\n";
     $testCount++;
     
@@ -235,44 +234,32 @@ try {
     if ($invalidUserResponse instanceof ApiResponse) {
         if (!$invalidUserResponse->isSuccess()) {
             $successCount++;
-            echo "✅ Hatalı kullanıcı ID doğru şekilde reddedildi\n";
-            echo "   📝 Hata mesajı: " . $invalidUserResponse->getMessage() . "\n";
+            echo "✅ Invalid user ID correctly rejected\n";
+            echo "   📝 Error message: " . $invalidUserResponse->getMessage() . "\n";
         } else {
             $errorCount++;
-            echo "❌ Hatalı kullanıcı ID kabul edildi (beklenmeyen durum)\n";
+            echo "❌ Invalid user ID accepted (unexpected)\n";
         }
     } else {
         $errorCount++;
-        echo "❌ Geçersiz yanıt formatı\n";
+        echo "❌ Invalid response format\n";
     }
     echo "\n";
     
-    // Test süresi hesaplama
+    // Calculate test duration
     $testEnd = microtime(true);
     $totalTime = round($testEnd - $testStart, 2);
     
     echo "========================================\n";
-    echo "           TEST SONUÇLARI\n";
+    echo "           TEST RESULTS\n";
     echo "========================================\n";
-    echo "📊 Toplam Test: $testCount\n";
-    echo "✅ Başarılı: $successCount\n";
-    echo "❌ Başarısız: $errorCount\n";
-    echo "⏱️ Test Süresi: {$totalTime} saniye\n";
-    echo "📈 Başarı Oranı: " . round(($successCount / $testCount) * 100, 1) . "%\n\n";
+    echo "📊 Total Tests: $testCount\n";
+    echo "✅ Successful: $successCount\n";
+    echo "❌ Failed: $errorCount\n";
+    echo "⏱️ Test Duration: {$totalTime} seconds\n";
+    echo "📈 Success Rate: " . round(($successCount / $testCount) * 100, 1) . "%\n\n";
     
-    // Test detayları
-    echo "========================================\n";
-    echo "           TEST DETAYLARI\n";
-    echo "========================================\n";
-    echo "🧪 Tested Functions:\n";
-    echo "   • createSepet() - Yeni sepet oluşturma\n";
-    echo "   • getSepet() - Sepet getirme (kullanıcı/sepet ID)\n";
-    echo "   • selectSepet() - Sepet listesi getirme\n";
-    echo "   • selectWebSepet() - Web sepet listesi getirme\n";
-    echo "   • Filtreli sorgular - Dil ve para birimi filtreleri\n";
-    echo "   • Hata senaryoları - Geçersiz kullanıcı ID testleri\n\n";
-    
-    echo "🏁 CartService test süreci tamamlandı!\n";
+    echo "🏁 CartService test process completed!\n";
     
 } catch (Exception $e) {
     echo "💥 FATAL ERROR: " . $e->getMessage() . "\n";
@@ -280,4 +267,4 @@ try {
     echo "📍 Line: " . $e->getLine() . "\n";
 }
 
-echo "\n=== CartService Test Süreci Tamamlandı ===\n"; 
+echo "\n=== CartService Test Process Completed ===\n"; 

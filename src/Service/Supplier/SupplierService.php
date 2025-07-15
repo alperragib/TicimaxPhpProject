@@ -25,9 +25,9 @@ class SupplierService
     /**
      * Fetch suppliers from the API.
      * @param int $supplierId (optional) Specific supplier ID, defaults to null for all suppliers
-     * @return SupplierModel[]
+     * @return ApiResponse
      */
-    public function getSuppliers(?int $supplierId = null): array
+    public function getSuppliers(?int $supplierId = null): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         $suppliers = [];
@@ -49,9 +49,13 @@ class SupplierService
             foreach ($supArr as $sup) {
                 $suppliers[] = new SupplierModel($sup);
             }
+            
+            return ApiResponse::success(
+                $suppliers,
+                'Suppliers retrieved successfully.'
+            );
         } catch (SoapFault $e) {
-            // Handle error or log
+            return ApiResponse::error('Error retrieving suppliers: ' . $e->getMessage());
         }
-        return $suppliers;
     }
 }

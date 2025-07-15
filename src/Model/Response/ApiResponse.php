@@ -6,7 +6,7 @@ namespace AlperRagib\Ticimax\Model\Response;
 
 /**
  * Class ApiResponse
- * Tüm API yanıtları için standart response sınıfı
+ * Standard response class for all API responses
  */
 class ApiResponse
 {
@@ -21,9 +21,9 @@ class ApiResponse
 
     /**
      * ApiResponse constructor.
-     * @param bool $success İşlem başarılı mı?
-     * @param string|null $message Mesaj (opsiyonel)
-     * @param mixed $data Veri (opsiyonel)
+     * @param bool $success Is the operation successful?
+     * @param string|null $message Message (optional)
+     * @param mixed $data Data (optional)
      */
     public function __construct(bool $success, ?string $message = null, $data = null)
     {
@@ -33,7 +33,7 @@ class ApiResponse
     }
 
     /**
-     * Başarılı yanıt oluştur
+     * Create successful response
      * @param mixed $data
      * @param string|null $message
      * @return self
@@ -44,7 +44,7 @@ class ApiResponse
     }
 
     /**
-     * Hata yanıtı oluştur
+     * Create error response
      * @param string $message
      * @param mixed $data
      * @return self
@@ -79,7 +79,7 @@ class ApiResponse
     }
 
     /**
-     * Response'u array'e çevir
+     * Convert response to array
      * @return array
      */
     public function toArray(): array
@@ -89,5 +89,10 @@ class ApiResponse
             'message' => $this->message,
             'data' => $this->data
         ];
+    }
+
+    public function __toString()
+    {
+        return json_encode($this->toArray());
     }
 } 

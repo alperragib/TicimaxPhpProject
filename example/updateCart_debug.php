@@ -12,14 +12,14 @@ try {
     $cartService = $ticimax->cartService();
     
     // Test edilecek ürünler
-    $testProducts = [6, 7, 8];
+    $testProducts = [6]; // Sadece ilk ürünü test et
     
     foreach ($testProducts as $productId) {
         echo "🔍 ÜRÜN ID {$productId} İÇİN DETAYLI DEBUG:\n";
         echo str_repeat("-", 60) . "\n";
         
         // Yeni sepet oluştur
-        $createResponse = $cartService->createSepet(1055);
+        $createResponse = $cartService->createCart(1055);
         $cartData = $createResponse->getData();
         $cartId = $cartData['SepetID'] ?? null;
         echo "✅ Sepet ID: {$cartId}\n";
@@ -51,7 +51,7 @@ try {
         // SOAP call - Schema'ya göre UpdateSepet
         $updateParams = [
             'UyeKodu' => $config['apiKey'],
-            'request' => $requestData  // Object değil array olarak gönder
+            'request' => (object)$requestData  // Object olarak gönder - düzeltildi
         ];
         
         echo "\n📤 Full SOAP Parameters:\n";
@@ -77,11 +77,13 @@ try {
         echo "\n🔍 Raw SOAP Request Check:\n";
         $lastRequest = $soapClient->__getLastRequest();
         if ($lastRequest) {
-            if (preg_match('/<UrunID>(\d+)<\/UrunID>/', $lastRequest, $matches)) {
+            echo "   📋 FULL XML Request:\n";
+            echo htmlspecialchars($lastRequest) . "\n\n";
+            
+            if (preg_match('/<ns2:UrunID>(\d+)<\/ns2:UrunID>/', $lastRequest, $matches)) {
                 echo "   ✅ XML'deki UrunID: " . $matches[1] . "\n";
             } else {
                 echo "   ❌ XML'de UrunID bulunamadı!\n";
-                echo "   Request snippet: " . substr($lastRequest, 0, 500) . "...\n";
             }
         } else {
             echo "   ❌ Raw request alınamadı\n";

@@ -12,24 +12,6 @@ $apiKey = $config['apiKey'];
 $ticimax = new Ticimax($mainDomain, $apiKey);
 $favoriteProductService = $ticimax->favouriteProductService();
 
-/*
-echo "=== Add Favourite Product Example ===\n";
-
-// Example: Add favourite product
-echo "Adding product to favourites:\n";
-
-$userId = 1;
-$productCardId = 4;
-$quantity = 1.0;
-
-$result = $favoriteProductService->addFavouriteProduct($userId, $productCardId, $quantity);
-
-if (!$result['IsError']) {
-    echo "Product added to favourites successfully!\n";
-} else {
-    echo "Failed to add product to favourites: " . $result['ErrorMessage'] . "\n";
-}
-*/
 
 echo "=== Remove Favourite Product Example ===\n";
 
@@ -50,11 +32,11 @@ if (!$result['IsError']) {
 echo "\n=== List Favorite Products ===\n";
 
 $parameters = [
-    'BaslangicTarihi'       => null,
-    'BitisTarihi'           => null,
-    'KayitSayisi'           => 20,
-    'SayfaNo'               => 1,
-    'UyeID'                 => 1,
+    'BaslangicTarihi' => null,
+    'BitisTarihi' => null,
+    'KayitSayisi' => 20,
+    'SayfaNo' => 1,
+    'UyeID' => 1,
 ];
 
 $products = $favoriteProductService->getFavouriteProducts($parameters);

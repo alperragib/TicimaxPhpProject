@@ -93,10 +93,10 @@ class UserService
                 $users[] = new UserModel($uye);
             }
             
-            return ApiResponse::success($users, 'Kullanıcılar başarıyla getirildi.');
+            return ApiResponse::success($users, 'Users retrieved successfully.');
             
         } catch (SoapFault $e) {
-            return ApiResponse::error('Kullanıcılar getirilirken bir hata oluştu: ' . $e->getMessage());
+            return ApiResponse::error('Error retrieving users: ' . $e->getMessage());
         }
     }
 
@@ -131,13 +131,13 @@ class UserService
 
             if (isset($response->GirisYapResult)) {
                 $loginResult = new LoginResultModel($response->GirisYapResult);
-                return ApiResponse::success($loginResult, 'Giriş başarılı.');
+                return ApiResponse::success($loginResult, 'Login successful.');
             }
             
-            return ApiResponse::error('Giriş başarısız.');
+            return ApiResponse::error('Login failed.');
             
         } catch (SoapFault $e) {
-            return ApiResponse::error('Giriş sırasında bir hata oluştu: ' . $e->getMessage());
+            return ApiResponse::error('Error during login: ' . $e->getMessage());
         }
     }
 
@@ -171,10 +171,10 @@ class UserService
                 $addresses[] = new UserAddressModel($adres);
             }
             
-            return ApiResponse::success($addresses, 'Kullanıcı adresleri başarıyla getirildi.');
+            return ApiResponse::success($addresses, 'User addresses retrieved successfully.');
             
         } catch (SoapFault $e) {
-            return ApiResponse::error('Kullanıcı adresleri getirilirken bir hata oluştu: ' . $e->getMessage());
+            return ApiResponse::error('Error retrieving user addresses: ' . $e->getMessage());
         }
     }
 
@@ -197,13 +197,13 @@ class UserService
 
             if (isset($response->SaveUyeAdresResult)) {
                 $addressId = (int)$response->SaveUyeAdresResult;
-                return ApiResponse::success($addressId, 'Kullanıcı adresi başarıyla kaydedildi.');
+                return ApiResponse::success($addressId, 'User address saved successfully.');
             }
             
-            return ApiResponse::error('Kullanıcı adresi kaydedilemedi.');
+            return ApiResponse::error('Failed to save user address.');
             
         } catch (SoapFault $e) {
-            return ApiResponse::error('Kullanıcı adresi kaydedilirken bir hata oluştu: ' . $e->getMessage());
+            return ApiResponse::error('Error saving user address: ' . $e->getMessage());
         }
     }
 
@@ -258,13 +258,13 @@ class UserService
 
             if (isset($response->SaveUyeResult)) {
                 $userId = (int)$response->SaveUyeResult;
-                return ApiResponse::success($userId, 'Kullanıcı başarıyla kaydedildi.');
+                return ApiResponse::success($userId, 'User saved successfully.');
             }
             
-            return ApiResponse::error('Kullanıcı kaydedilemedi.');
+            return ApiResponse::error('Failed to save user.');
             
         } catch (SoapFault $e) {
-            return ApiResponse::error('Kullanıcı kaydedilirken bir hata oluştu: ' . $e->getMessage());
+            return ApiResponse::error('Error saving user: ' . $e->getMessage());
         }
     }
 

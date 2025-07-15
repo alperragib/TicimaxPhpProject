@@ -7,30 +7,30 @@ use AlperRagib\Ticimax\Ticimax;
 // Load configuration
 $config = require __DIR__ . '/../config.php';
 
-echo "=== TEDARİKÇİ (SUPPLIER) SERVİS TESTİ ===\n\n";
+echo "=== SUPPLIER SERVICE TEST ===\n\n";
 
-// Test başlangıç zamanı
+// Test start time
 $testStart = microtime(true);
 
 try {
-    // Ticimax API'yi başlat
+    // Initialize Ticimax API
     $ticimax = new Ticimax($config['mainDomain'], $config['apiKey']);
     $supplierService = $ticimax->supplierService();
     
-    echo "✓ Ticimax SupplierService başlatıldı\n";
+    echo "✓ Ticimax SupplierService initialized\n";
     echo "Domain: {$config['mainDomain']}\n\n";
     
-    // Test sayaçları
+    // Test counters
     $testCount = 0;
     $successCount = 0;
     $errorCount = 0;
     
     echo "========================================\n";
-    echo "         TEDARİKÇİ TESTLERİ\n";
+    echo "         SUPPLIER TESTS\n";
     echo "========================================\n\n";
     
-    // Test 1: Tüm tedarikçileri getirme ve listeleme
-    echo "🧪 Test 1: TÜM TEDARİKÇİLERİ LİSTELEME\n";
+    // Test 1: Get and list all suppliers
+    echo "🧪 Test 1: LIST ALL SUPPLIERS\n";
     echo "------------------------------------\n";
     $testCount++;
     
@@ -38,25 +38,25 @@ try {
     
     if (!empty($allSuppliers)) {
         $successCount++;
-        echo "✅ Tedarikçiler başarıyla getirildi\n";
-        echo "📦 Toplam Tedarikçi Sayısı: " . count($allSuppliers) . "\n\n";
+        echo "✅ Suppliers retrieved successfully\n";
+        echo "📦 Total Suppliers: " . count($allSuppliers) . "\n\n";
         
-        // TÜM TEDARİKÇİLERİ LİSTELE
-        echo "📋 TÜM TEDARİKÇİ LİSTESİ:\n";
+        // LIST ALL SUPPLIERS
+        echo "📋 COMPLETE SUPPLIER LIST:\n";
         echo str_repeat("=", 80) . "\n";
         
         foreach ($allSuppliers as $index => $supplier) {
             $supplierNum = $index + 1;
-            echo "[$supplierNum] TEDARİKÇİ DETAYLARI:\n";
+            echo "[$supplierNum] SUPPLIER DETAILS:\n";
             echo "   🆔 ID: " . ($supplier->ID ?? 'N/A') . "\n";
-            echo "   🏷️  Adı: " . ($supplier->Tanim ?? 'N/A') . "\n";
-            echo "   ✅ Aktif: " . (($supplier->Aktif ?? false) ? 'Evet' : 'Hayır') . "\n";
-            echo "   📧 E-mail: " . ($supplier->Mail ?? 'Belirtilmemiş') . "\n";
-            echo "   📝 Not: " . ($supplier->Not ?? 'Belirtilmemiş') . "\n";
+            echo "   🏷️  Name: " . ($supplier->Tanim ?? 'N/A') . "\n";
+            echo "   ✅ Active: " . (($supplier->Aktif ?? false) ? 'Yes' : 'No') . "\n";
+            echo "   📧 Email: " . ($supplier->Mail ?? 'Not specified') . "\n";
+            echo "   📝 Note: " . ($supplier->Not ?? 'Not specified') . "\n";
             echo "   -------------------------\n";
         }
         
-        // İstatistikler
+        // Statistics
         $activeCount = 0;
         $inactiveCount = 0;
         $emailCount = 0;
@@ -70,26 +70,26 @@ try {
             if (!empty($supplier->Not)) $noteCount++;
         }
         
-        echo "\n📊 TEDARİKÇİ İSTATİSTİKLERİ:\n";
-        echo "   📦 Toplam Tedarikçi: " . count($allSuppliers) . "\n";
-        echo "   ✅ Aktif Tedarikçi: $activeCount\n";
-        echo "   ❌ Pasif Tedarikçi: $inactiveCount\n";
-        echo "   📧 E-mail Olan: $emailCount\n";
-        echo "   📝 Not Olan: $noteCount\n";
+        echo "\n📊 SUPPLIER STATISTICS:\n";
+        echo "   📦 Total Suppliers: " . count($allSuppliers) . "\n";
+        echo "   ✅ Active Suppliers: $activeCount\n";
+        echo "   ❌ Inactive Suppliers: $inactiveCount\n";
+        echo "   📧 With Email: $emailCount\n";
+        echo "   📝 With Notes: $noteCount\n";
         
-        // İlk tedarikçiyi test için saklayalım
+        // Save first supplier for testing
         $testSupplierId = $allSuppliers[0]->ID ?? null;
         
     } else {
         $errorCount++;
-        echo "❌ Tedarikçi bulunamadı veya hata oluştu\n";
+        echo "❌ No suppliers found or error occurred\n";
         $testSupplierId = null;
     }
     echo "\n";
     
-    // Test 2: Belirli tedarikçi getirme
+    // Test 2: Get specific supplier
     if ($testSupplierId) {
-        echo "🧪 Test 2: BELİRLİ TEDARİKÇİ DETAYI\n";
+        echo "🧪 Test 2: SPECIFIC SUPPLIER DETAILS\n";
         echo "---------------------------------\n";
         $testCount++;
         
@@ -97,25 +97,25 @@ try {
         
         if (!empty($specificSupplier)) {
             $successCount++;
-            echo "✅ Belirli tedarikçi başarıyla getirildi\n";
-            echo "🎯 Test Edilen ID: $testSupplierId\n";
+            echo "✅ Specific supplier retrieved successfully\n";
+            echo "🎯 Tested ID: $testSupplierId\n";
             
             $supplier = $specificSupplier[0];
-            echo "📋 DETAY BİLGİLERİ:\n";
+            echo "📋 DETAILED INFORMATION:\n";
             echo "   🆔 ID: " . ($supplier->ID ?? 'N/A') . "\n";
-            echo "   🏷️  Tedarikçi Adı: " . ($supplier->Tanim ?? 'N/A') . "\n";
-            echo "   ✅ Durum: " . (($supplier->Aktif ?? false) ? 'Aktif' : 'Pasif') . "\n";
-            echo "   📧 E-mail: " . ($supplier->Mail ?? 'Belirtilmemiş') . "\n";
-            echo "   📝 Not: " . ($supplier->Not ?? 'Belirtilmemiş') . "\n";
+            echo "   🏷️  Supplier Name: " . ($supplier->Tanim ?? 'N/A') . "\n";
+            echo "   ✅ Status: " . (($supplier->Aktif ?? false) ? 'Active' : 'Inactive') . "\n";
+            echo "   📧 Email: " . ($supplier->Mail ?? 'Not specified') . "\n";
+            echo "   📝 Note: " . ($supplier->Not ?? 'Not specified') . "\n";
         } else {
             $errorCount++;
-            echo "❌ Belirli tedarikçi getirilemedi\n";
+            echo "❌ Could not retrieve specific supplier\n";
         }
         echo "\n";
     }
     
-    // Test 3: Olmayan tedarikçi kontrolü
-    echo "🧪 Test 3: OLMAYAN TEDARİKÇİ KONTROLÜ\n";
+    // Test 3: Check non-existent supplier
+    echo "🧪 Test 3: NON-EXISTENT SUPPLIER CHECK\n";
     echo "-----------------------------------\n";
     $testCount++;
     
@@ -123,26 +123,26 @@ try {
     
     if (empty($nonExistentSupplier)) {
         $successCount++;
-        echo "✅ Olmayan tedarikçi için boş sonuç döndü (doğru davranış)\n";
-        echo "🎯 Test ID: 999999 - Sonuç: Bulunamadı\n";
+        echo "✅ Empty result returned for non-existent supplier (correct behavior)\n";
+        echo "🎯 Test ID: 999999 - Result: Not found\n";
     } else {
         $errorCount++;
-        echo "❌ Olmayan tedarikçi için beklenmeyen sonuç döndü\n";
-        echo "📦 Bulunan kayıt sayısı: " . count($nonExistentSupplier) . "\n";
+        echo "❌ Unexpected result returned for non-existent supplier\n";
+        echo "📦 Records found: " . count($nonExistentSupplier) . "\n";
     }
     echo "\n";
     
-    // Test 4: Performans testi
-    echo "🧪 Test 4: PERFORMANS TESTİ\n";
+    // Test 4: Performance test
+    echo "🧪 Test 4: PERFORMANCE TEST\n";
     echo "-------------------------\n";
     $testCount++;
     
     $performanceStart = microtime(true);
     
-    // 3 kez aynı sorguyu yap
+    // Make the same query 3 times
     for ($i = 1; $i <= 3; $i++) {
         $perfTest = $supplierService->getSuppliers();
-        echo "   📡 İstek $i tamamlandı...\n";
+        echo "   📡 Request $i completed...\n";
     }
     
     $performanceEnd = microtime(true);
@@ -150,43 +150,43 @@ try {
     $avgTime = round($performanceTime / 3, 2);
     
     $successCount++;
-    echo "✅ Performans testi tamamlandı\n";
-    echo "⏱️  3 İstek Toplam Süre: {$performanceTime} saniye\n";
-    echo "📊 Ortalama İstek Süresi: {$avgTime} saniye\n";
+    echo "✅ Performance test completed\n";
+    echo "⏱️  Total Time for 3 Requests: {$performanceTime} seconds\n";
+    echo "📊 Average Request Time: {$avgTime} seconds\n";
     echo "\n";
     
-    // Test süresi hesaplama
+    // Calculate test duration
     $testEnd = microtime(true);
     $totalTime = round($testEnd - $testStart, 2);
     
     echo "========================================\n";
-    echo "           TEST SONUÇLARI\n";
+    echo "           TEST RESULTS\n";
     echo "========================================\n";
-    echo "📊 Toplam Test: $testCount\n";
-    echo "✅ Başarılı: $successCount\n";
-    echo "❌ Başarısız: $errorCount\n";
-    echo "⏱️  Test Süresi: {$totalTime} saniye\n";
-    echo "📈 Başarı Oranı: " . round(($successCount / $testCount) * 100, 1) . "%\n\n";
+    echo "📊 Total Tests: $testCount\n";
+    echo "✅ Successful: $successCount\n";
+    echo "❌ Failed: $errorCount\n";
+    echo "⏱️  Test Duration: {$totalTime} seconds\n";
+    echo "📈 Success Rate: " . round(($successCount / $testCount) * 100, 1) . "%\n\n";
     
-    // Test özeti
+    // Test summary
     echo "========================================\n";
-    echo "           TEST ÖZETİ\n";
+    echo "           TEST SUMMARY\n";
     echo "========================================\n";
-    echo "🧪 Test Edilen İşlemler:\n";
-    echo "   • getSuppliers() - Tüm tedarikçi listesi\n";
-    echo "   • getSuppliers(id) - Belirli tedarikçi detayı\n";
-    echo "   • Hata kontrolü - Olmayan ID testi\n";
-    echo "   • Performans analizi - Çoklu istek testi\n";
-    echo "   • Veri bütünlüğü - Field mapping kontrolü\n\n";
+    echo "🧪 Tested Operations:\n";
+    echo "   • getSuppliers() - Complete supplier list\n";
+    echo "   • getSuppliers(id) - Specific supplier details\n";
+    echo "   • Error handling - Non-existent ID test\n";
+    echo "   • Performance analysis - Multiple request test\n";
+    echo "   • Data integrity - Field mapping check\n\n";
     
-    echo "📋 Field Mapping (WSDL Uyumlu):\n";
-    echo "   • TedarikciAdi → Tanim ✅\n";
+    echo "📋 Field Mapping (WSDL Compatible):\n";
+    echo "   • SupplierName → Tanim ✅\n";
     echo "   • ID → ID ✅\n";
-    echo "   • Aktif → Aktif ✅\n";
+    echo "   • Active → Aktif ✅\n";
     echo "   • Mail → Mail ✅\n";
-    echo "   • Not → Not ✅\n\n";
+    echo "   • Note → Not ✅\n\n";
     
-    echo "🏁 SupplierService test süreci tamamlandı!\n";
+    echo "🏁 SupplierService test process completed!\n";
     
 } catch (Exception $e) {
     echo "💥 FATAL ERROR: " . $e->getMessage() . "\n";
@@ -194,4 +194,4 @@ try {
     echo "📍 Line: " . $e->getLine() . "\n";
 }
 
-echo "\n=== TEDARİKÇİ SERVİS TESTİ TAMAMLANDI ===\n"; 
+echo "\n=== SUPPLIER SERVICE TEST COMPLETED ===\n"; 

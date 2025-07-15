@@ -19,7 +19,13 @@ echo "=== MENU SERVICE TEST SUITE ===\n\n";
 echo "1. === GET ALL MENUS (DEFAULT) TEST ===\n";
 echo "Testing getMenus() with default filters...\n";
 
-$defaultResponse = $menuService->getMenus();
+$defaultResponse = $menuService->getMenus(
+    [
+        'Aktif' => 1,  // -1: all, 0: inactive, 1: active
+        'Dil' => 'EN',    // Language code
+        'MenuID' => 0   // Specific menu ID, 0 for all
+    ]
+);
 
 if ($defaultResponse->isSuccess()) {
     echo "✓ " . $defaultResponse->getMessage() . "\n";
@@ -170,9 +176,9 @@ $nonExistentResponse = $menuService->getMenus(['MenuID' => 999999]);
 if ($nonExistentResponse->isSuccess()) {
     $nonExistentMenus = $nonExistentResponse->getData();
     if (empty($nonExistentMenus)) {
-        echo "✓ Olmayan menü için boş sonuç döndü (beklendiği gibi).\n";
+        echo "✓ Empty result returned for non-existent menu (as expected).\n";
     } else {
-        echo "✗ Olmayan menü için beklenmeyen sonuç döndü.\n";
+        echo "✗ Unexpected result returned for non-existent menu.\n";
         echo "Found " . count($nonExistentMenus) . " menu(s).\n";
     }
 } else {

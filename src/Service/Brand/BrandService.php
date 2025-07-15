@@ -25,9 +25,9 @@ class BrandService
     /**
      * Fetch brands from the API.
      * @param int $brandId (optional) Specific brand ID, defaults to 0 for all brands
-     * @return BrandModel[]
+     * @return ApiResponse
      */
-    public function getBrands(int $brandId = 0,): array
+    public function getBrands(int $brandId = 0,): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         $brands = [];
@@ -50,8 +50,13 @@ class BrandService
             foreach ($brandArr as $brand) {
                 $brands[] = new BrandModel($brand);
             }
+            
+            return ApiResponse::success(
+                $brands,
+                'Brands retrieved successfully.'
+            );
         } catch (SoapFault $e) {
+            return ApiResponse::error('Error retrieving brands: ' . $e->getMessage());
         }
-        return $brands;
     }
 }

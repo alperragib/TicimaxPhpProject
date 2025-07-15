@@ -8,69 +8,70 @@ use AlperRagib\Ticimax\Model\Category\CategoryModel;
 // Load configuration
 $config = require __DIR__ . '/../config.php';
 
-echo "=== KATEGORİ (CATEGORY) SERVİS TESTİ ===\n\n";
+echo "=== CATEGORY SERVICE TEST ===\n\n";
 
-// Test başlangıç zamanı
+// Test start time
 $testStart = microtime(true);
 
 try {
-    // Ticimax API'yi başlat
+    // Initialize Ticimax API
     $ticimax = new Ticimax($config['mainDomain'], $config['apiKey']);
     $categoryService = $ticimax->categoryService();
     
-    echo "✓ Ticimax CategoryService başlatıldı\n";
+    echo "✓ Ticimax CategoryService initialized\n";
     echo "Domain: {$config['mainDomain']}\n\n";
     
-    // Test sayaçları
+    // Test counters
     $testCount = 0;
     $successCount = 0;
     $errorCount = 0;
     
     echo "========================================\n";
-    echo "         KATEGORİ TESTLERİ\n";
+    echo "         CATEGORY TESTS\n";
     echo "========================================\n\n";
     
-    // Test 1: Tüm kategorileri getirme ve listeleme
-    echo "🧪 Test 1: TÜM KATEGORİLERİ LİSTELEME\n";
+    // Test 1: Get and list all categories
+    echo "🧪 Test 1: LIST ALL CATEGORIES\n";
     echo "-----------------------------------\n";
     $testCount++;
     
-    $allCategories = $categoryService->getCategories();
+    $response = $categoryService->getCategories(0,'TR');
     
-    if (!empty($allCategories)) {
+    if ($response->isSuccess()) {
+        $allCategories = $response->getData();
         $successCount++;
-        echo "✅ Kategoriler başarıyla getirildi\n";
-        echo "📦 Toplam Kategori Sayısı: " . count($allCategories) . "\n\n";
+        echo "✅ Categories retrieved successfully\n";
+        echo "📦 Total Categories: " . count($allCategories) . "\n\n";
         
-        // TÜM KATEGORİLERİ LİSTELE
-        echo "📋 TÜM KATEGORİ LİSTESİ:\n";
+        // LIST ALL CATEGORIES
+        echo "📋 COMPLETE CATEGORY LIST:\n";
         echo str_repeat("=", 80) . "\n";
         
         foreach ($allCategories as $index => $category) {
             $categoryNum = $index + 1;
-            echo "[$categoryNum] KATEGORİ DETAYLARI:\n";
+            echo "[$categoryNum] CATEGORY DETAILS:\n";
             echo "   🆔 ID: " . ($category->ID ?? 'N/A') . "\n";
-            echo "   🏷️  Adı: " . ($category->Tanim ?? 'N/A') . "\n";
+            echo "   🏷️  Name: " . ($category->Tanim ?? 'N/A') . "\n";
             echo "   👥 Parent ID: " . ($category->PID ?? 'N/A') . "\n";
-            echo "   ✅ Aktif: " . (($category->Aktif ?? false) ? 'Evet' : 'Hayır') . "\n";
-            echo "   📊 Sıra: " . ($category->Sira ?? 'N/A') . "\n";
-            echo "   🔗 URL: " . ($category->Url ?? 'Belirtilmemiş') . "\n";
+            echo "   ✅ Active: " . (($category->Aktif ?? false) ? 'Yes' : 'No') . "\n";
+            echo "   📊 Sort Order: " . ($category->Sira ?? 'N/A') . "\n";
+            echo "   🔗 URL: " . ($category->Url ?? 'Not specified') . "\n";
             
-            // Açıklamayı kısalt - sadece ilk 100 karakter
+            // Shorten description - only first 100 characters
             $description = $category->Icerik ?? '';
             if (strlen($description) > 100) {
                 $description = substr(strip_tags($description), 0, 100) . "...";
             } else {
-                $description = strip_tags($description) ?: 'Belirtilmemiş';
+                $description = strip_tags($description) ?: 'Not specified';
             }
-            echo "   📝 Açıklama: " . $description . "\n";
+            echo "   📝 Description: " . $description . "\n";
             
-            echo "   🏷️  SEO Başlık: " . (($category->SeoSayfaBaslik ?? '') ?: 'Belirtilmemiş') . "\n";
-            echo "   🏷️  Kod: " . (($category->Kod ?? '') ?: 'Belirtilmemiş') . "\n";
+            echo "   🏷️  SEO Title: " . (($category->SeoSayfaBaslik ?? '') ?: 'Not specified') . "\n";
+            echo "   🏷️  Code: " . (($category->Kod ?? '') ?: 'Not specified') . "\n";
             echo "   -------------------------\n";
         }
         
-        // İstatistikler
+        // Statistics
         $activeCount = 0;
         $inactiveCount = 0;
         $rootCount = 0;
@@ -89,72 +90,77 @@ try {
             if (!empty($category->Icerik)) $withDescCount++;
         }
         
-        echo "\n📊 KATEGORİ İSTATİSTİKLERİ:\n";
-        echo "   📦 Toplam Kategori: " . count($allCategories) . "\n";
-        echo "   ✅ Aktif Kategori: $activeCount\n";
-        echo "   ❌ Pasif Kategori: $inactiveCount\n";
-        echo "   🌳 Ana Kategori: $rootCount\n";
-        echo "   🌿 Alt Kategori: $childCount\n";
-        echo "   🏷️  SEO Başlıklı: $withSeoCount\n";
-        echo "   📝 Açıklamalı: $withDescCount\n";
+        echo "\n📊 CATEGORY STATISTICS:\n";
+        echo "   📦 Total Categories: " . count($allCategories) . "\n";
+        echo "   ✅ Active Categories: $activeCount\n";
+        echo "   ❌ Inactive Categories: $inactiveCount\n";
+        echo "   🌳 Root Categories: $rootCount\n";
+        echo "   🌿 Child Categories: $childCount\n";
+        echo "   🏷️  With SEO Title: $withSeoCount\n";
+        echo "   📝 With Description: $withDescCount\n";
         
-        // İlk kategoriyi test için saklayalım
+        // Save first category for testing
         $testCategoryId = $allCategories[0]->ID ?? null;
         $testParentId = $allCategories[0]->PID ?? null;
         
     } else {
         $errorCount++;
-        echo "❌ Kategori bulunamadı veya hata oluştu\n";
+        echo "❌ No categories found or error occurred\n";
         $testCategoryId = null;
         $testParentId = null;
     }
     echo "\n";
     
-    // Test 2: Belirli kategori getirme
+    // Test 2: Get specific category
     if ($testCategoryId) {
-        echo "🧪 Test 2: BELİRLİ KATEGORİ DETAYI\n";
+        echo "🧪 Test 2: SPECIFIC CATEGORY DETAILS\n";
         echo "-------------------------------\n";
         $testCount++;
         
-        $specificCategory = $categoryService->getCategories($testCategoryId);
+        $response = $categoryService->getCategories($testCategoryId);
         
-        if (!empty($specificCategory)) {
+        if ($response->isSuccess()) {
+            $specificCategory = $response->getData();
             $successCount++;
-            echo "✅ Belirli kategori başarıyla getirildi\n";
-            echo "🎯 Test Edilen ID: $testCategoryId\n";
+            echo "✅ Specific category retrieved successfully\n";
+            echo "🎯 Tested ID: $testCategoryId\n";
             
-            $category = $specificCategory[0];
-            echo "📋 DETAY BİLGİLERİ:\n";
-            echo "   🆔 ID: " . ($category->ID ?? 'N/A') . "\n";
-            echo "   🏷️  Kategori Adı: " . ($category->Tanim ?? 'N/A') . "\n";
-            echo "   👥 Parent ID: " . ($category->PID ?? 'N/A') . "\n";
-            echo "   ✅ Durum: " . (($category->Aktif ?? false) ? 'Aktif' : 'Pasif') . "\n";
-            echo "   📊 Sıra: " . ($category->Sira ?? 'N/A') . "\n";
-            echo "   🔗 URL: " . ($category->Url ?? 'Belirtilmemiş') . "\n";
+            if (!empty($specificCategory)) {
+                $category = $specificCategory[0];
+                echo "📋 DETAILED INFORMATION:\n";
+                echo "   🆔 ID: " . ($category->ID ?? 'N/A') . "\n";
+                echo "   🏷️  Category Name: " . ($category->Tanim ?? 'N/A') . "\n";
+                echo "   👥 Parent ID: " . ($category->PID ?? 'N/A') . "\n";
+                echo "   ✅ Status: " . (($category->Aktif ?? false) ? 'Active' : 'Inactive') . "\n";
+                echo "   📊 Sort Order: " . ($category->Sira ?? 'N/A') . "\n";
+                echo "   🔗 URL: " . ($category->Url ?? 'Not specified') . "\n";
+            } else {
+                echo "❌ Category not found\n";
+            }
         } else {
             $errorCount++;
-            echo "❌ Belirli kategori getirilemedi\n";
+            echo "❌ Could not retrieve specific category: " . $response->getMessage() . "\n";
         }
         echo "\n";
     }
     
-    // Test 3: Yeni kategori oluşturma
-    echo "🧪 Test 3: YENİ KATEGORİ OLUŞTURMA\n";
+    // Test 3: Create new category
+    echo "🧪 Test 3: CREATE NEW CATEGORY\n";
     echo "--------------------------------\n";
     $testCount++;
     
-    // CategoryModel objesi oluştur
+    // Create CategoryModel object
     $categoryData = [
         'ID' => 0,
-        'Tanim' => 'Test Kategori ' . date('Y-m-d H:i:s'),
+        'Tanim' => 'Test Category ' . date('Y-m-d H:i:s'),
         'PID' => 0,
         'Aktif' => true,
         'Sira' => 99,
-        'Icerik' => 'Test kategorisi açıklaması',
-        'Url' => '/test-kategori-' . time(),
-        'SeoSayfaBaslik' => 'Test Kategori SEO',
-        'SeoSayfaAciklama' => 'Test kategori SEO açıklaması',
-        'SeoAnahtarKelime' => 'test,kategori',
+        'Icerik' => 'Test category description',
+        'Url' => '/test-category-' . time(),
+        'SeoSayfaBaslik' => 'Test Category SEO',
+        'SeoSayfaAciklama' => 'Test category SEO description',
+        'SeoAnahtarKelime' => 'test,category',
         'Kod' => 'TEST_' . time()
     ];
     
@@ -164,46 +170,52 @@ try {
     if ($createResponse->isSuccess()) {
         $successCount++;
         $newCategoryId = $createResponse->getData();
-        echo "✅ Yeni kategori başarıyla oluşturuldu\n";
-        echo "🆔 Yeni Kategori ID: $newCategoryId\n";
-        echo "🏷️  Kategori Adı: " . $categoryData['Tanim'] . "\n";
-        echo "📝 Mesaj: " . $createResponse->getMessage() . "\n";
+        echo "✅ New category created successfully\n";
+        echo "🆔 New Category ID: $newCategoryId\n";
+        echo "🏷️  Category Name: " . $categoryData['Tanim'] . "\n";
+        echo "📝 Message: " . $createResponse->getMessage() . "\n";
     } else {
         $errorCount++;
-        echo "❌ Yeni kategori oluşturulamadı\n";
-        echo "📝 Hata: " . $createResponse->getMessage() . "\n";
+        echo "❌ Could not create new category\n";
+        echo "📝 Error: " . $createResponse->getMessage() . "\n";
     }
     echo "\n";
     
-    // Test 4: Olmayan kategori kontrolü
-    echo "🧪 Test 4: OLMAYAN KATEGORİ KONTROLÜ\n";
+    // Test 4: Check non-existent category
+    echo "🧪 Test 4: NON-EXISTENT CATEGORY CHECK\n";
     echo "----------------------------------\n";
     $testCount++;
     
-    $nonExistentCategory = $categoryService->getCategories(999999);
+    $response = $categoryService->getCategories(999999);
     
-    if (empty($nonExistentCategory)) {
-        $successCount++;
-        echo "✅ Olmayan kategori için boş sonuç döndü (doğru davranış)\n";
-        echo "🎯 Test ID: 999999 - Sonuç: Bulunamadı\n";
+    if ($response->isSuccess()) {
+        $nonExistentCategory = $response->getData();
+        if (empty($nonExistentCategory)) {
+            $successCount++;
+            echo "✅ Empty result returned for non-existent category (correct behavior)\n";
+            echo "🎯 Test ID: 999999 - Result: Not found\n";
+        } else {
+            $errorCount++;
+            echo "❌ Unexpected result returned for non-existent category\n";
+            echo "📦 Records found: " . count($nonExistentCategory) . "\n";
+        }
     } else {
         $errorCount++;
-        echo "❌ Olmayan kategori için beklenmeyen sonuç döndü\n";
-        echo "📦 Bulunan kayıt sayısı: " . count($nonExistentCategory) . "\n";
+        echo "❌ Could not query category: " . $response->getMessage() . "\n";
     }
     echo "\n";
     
-    // Test 5: Performans testi
-    echo "🧪 Test 5: PERFORMANS TESTİ\n";
+    // Test 5: Performance test
+    echo "🧪 Test 5: PERFORMANCE TEST\n";
     echo "-------------------------\n";
     $testCount++;
     
     $performanceStart = microtime(true);
     
-    // 3 kez aynı sorguyu yap
+    // Make the same query 3 times
     for ($i = 1; $i <= 3; $i++) {
         $perfTest = $categoryService->getCategories();
-        echo "   📡 İstek $i tamamlandı...\n";
+        echo "   📡 Request $i completed...\n";
     }
     
     $performanceEnd = microtime(true);
@@ -211,45 +223,44 @@ try {
     $avgTime = round($performanceTime / 3, 2);
     
     $successCount++;
-    echo "✅ Performans testi tamamlandı\n";
-    echo "⏱️  3 İstek Toplam Süre: {$performanceTime} saniye\n";
-    echo "📊 Ortalama İstek Süresi: {$avgTime} saniye\n";
+    echo "✅ Performance test completed\n";
+    echo "⏱️  Total Time for 3 Requests: {$performanceTime} seconds\n";
+    echo "📊 Average Request Time: {$avgTime} seconds\n";
     echo "\n";
     
-    // Test süresi hesaplama
+    // Calculate test duration
     $testEnd = microtime(true);
     $totalTime = round($testEnd - $testStart, 2);
     
     echo "========================================\n";
-    echo "           TEST SONUÇLARI\n";
+    echo "           TEST RESULTS\n";
     echo "========================================\n";
-    echo "📊 Toplam Test: $testCount\n";
-    echo "✅ Başarılı: $successCount\n";
-    echo "❌ Başarısız: $errorCount\n";
-    echo "⏱️  Test Süresi: {$totalTime} saniye\n";
-    echo "📈 Başarı Oranı: " . round(($successCount / $testCount) * 100, 1) . "%\n\n";
+    echo "📊 Total Tests: $testCount\n";
+    echo "✅ Successful: $successCount\n";
+    echo "❌ Failed: $errorCount\n";
+    echo "⏱️  Test Duration: {$totalTime} seconds\n";
+    echo "📈 Success Rate: " . round(($successCount / $testCount) * 100, 1) . "%\n\n";
     
-    // Test özeti
+    // Test summary
     echo "========================================\n";
-    echo "           TEST ÖZETİ\n";
+    echo "           TEST SUMMARY\n";
     echo "========================================\n";
-    echo "🧪 Test Edilen İşlemler:\n";
-    echo "   • getCategories() - Tüm kategori listesi\n";
-    echo "   • getCategories(id) - Belirli kategori detayı\n";
-    echo "   • createCategory() - Yeni kategori oluşturma\n";
-    echo "   • Hata kontrolü - Olmayan ID testi\n";
-    echo "   • Performans analizi - Çoklu istek testi\n";
-    echo "   • Veri bütünlüğü - Field mapping kontrolü\n\n";
+    echo "🧪 Tested Operations:\n";
+    echo "   • getCategories() - Complete category list\n";
+    echo "   • getCategories(id) - Specific category details\n";
+    echo "   • createCategory() - Create new category\n";
+    echo "   • Performance analysis - Multiple request test\n";
+    echo "   • Data integrity - Field mapping check\n\n";
     
-    echo "📋 Field Mapping (WSDL Uyumlu):\n";
-    echo "   • KategoriAdi → Tanim ✅\n";
+    echo "📋 Field Mapping (WSDL Compatible):\n";
+    echo "   • CategoryName → Tanim ✅\n";
     echo "   • ParentID → PID ✅\n";
-    echo "   • SiraNo → Sira ✅\n";
-    echo "   • Aciklama → Icerik ✅\n";
+    echo "   • SortOrder → Sira ✅\n";
+    echo "   • Description → Icerik ✅\n";
     echo "   • ID → ID ✅\n";
-    echo "   • Aktif → Aktif ✅\n\n";
+    echo "   • Active → Aktif ✅\n\n";
     
-    echo "🏁 CategoryService test süreci tamamlandı!\n";
+    echo "🏁 CategoryService test process completed!\n";
     
 } catch (Exception $e) {
     echo "💥 FATAL ERROR: " . $e->getMessage() . "\n";
@@ -257,4 +268,4 @@ try {
     echo "📍 Line: " . $e->getLine() . "\n";
 }
 
-echo "\n=== KATEGORİ SERVİS TESTİ TAMAMLANDI ===\n"; 
+echo "\n=== CATEGORY SERVICE TEST COMPLETED ===\n"; 

@@ -22,15 +22,15 @@ class OrderProductModel extends BaseModel
      */
     public function __construct($data = [])
     {
-        // Önce veriyi array'e çevirelim
+        // First, let's convert the data to array
         $arr = $this->convertToArray($data);
 
-        // Özel veri dönüşümü - API'den gelen veri WebSiparisUrun içinde olabilir
+        // Special data transformation - API data may come within WebSiparisUrun
         if (isset($arr['WebSiparisUrun']) && is_array($arr['WebSiparisUrun'])) {
             $arr = $arr['WebSiparisUrun'];
         }
 
-        // Parent constructor'ı çağıralım
+        // Call parent constructor
         parent::__construct($arr);
     }
 }

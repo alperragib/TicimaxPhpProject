@@ -3,295 +3,200 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 use AlperRagib\Ticimax\Ticimax;
+use AlperRagib\Ticimax\Model\Response\ApiResponse;
 
-// Set your Ticimax domain and API key
+// Load configuration
 $config = require __DIR__ . '/../config.php';
-$mainDomain = $config['mainDomain'];
-$apiKey = $config['apiKey'];
 
-// Instantiate the main Ticimax entrypoint
-$ticimax = new Ticimax($mainDomain, $apiKey);
-$favouriteProductService = $ticimax->favouriteProductService();
+echo "=== FAVOURITE PRODUCT SERVICE TESTS ===\n\n";
 
-echo "=== FAVOURITE PRODUCT SERVICE TEST SUITE ===\n\n";
-
-// Test 1: Get Favourite Products with Default Parameters
-echo "1. === GET FAVOURITE PRODUCTS (DEFAULT) TEST ===\n";
-echo "Testing getFavouriteProducts() with default parameters...\n";
-
-$defaultResponse = $favouriteProductService->getFavouriteProducts(['UyeID' => 1, 'KayitSayisi' => 1]);
-
-if ($defaultResponse->isSuccess()) {
-    echo "✓ " . $defaultResponse->getMessage() . "\n";
-    $favouriteProducts = $defaultResponse->getData();
-    echo "Found " . count($favouriteProducts) . " favourite products.\n";
+try {
+    // Initialize Ticimax API
+    $ticimax = new Ticimax($config['mainDomain'], $config['apiKey']);
+    $favouriteService = $ticimax->favouriteProductService();
     
-    if (!empty($favouriteProducts)) {
-        echo "First favourite product details:\n";
-        $firstProduct = $favouriteProducts[0];
-        echo "- Favourite ID: " . ($firstProduct->FavoriUrunID ?? 'N/A') . "\n";
-        echo "- User ID: " . ($firstProduct->UyeID ?? 'N/A') . "\n";
-        echo "- Product Card ID: " . ($firstProduct->UrunKartiID ?? 'N/A') . "\n";
-        echo "- Product Name: " . ($firstProduct->UrunAdi ?? 'N/A') . "\n";
-        echo "- Quantity: " . ($firstProduct->UrunSayisi ?? 'N/A') . "\n";
-        echo "- Price: " . ($firstProduct->UrunFiyati ?? 'N/A') . " TL\n";
-        echo "- Price with VAT: " . ($firstProduct->UrunFiyatiKdv ?? 'N/A') . " TL\n";
-        echo "- Stock Code: " . ($firstProduct->StokKodu ?? 'N/A') . "\n";
-        echo "- Add Date: " . ($firstProduct->EklemeTarihi ?? 'N/A') . "\n";
-        
-        // Store data for other tests
-        $testUserId = $firstProduct->UyeID ?? 1;
-        $testProductCardId = $firstProduct->UrunKartiID ?? 1;
-        $testFavouriteId = $firstProduct->FavoriUrunID ?? null;
+    // Test parameters
+    $testUserId = 1055; // Test user ID
+    $testProductId = 16; // Test product ID
+    
+    // Test counters
+    $testCount = 0;
+    $successCount = 0;
+    $errorCount = 0;
+    
+    echo "========================================\n";
+    echo "      FAVOURITE PRODUCT TESTS\n";
+    echo "========================================\n\n";
+    
+    // Test 1: Get favourite products with NULL user ID
+    echo "🧪 Test 1: GET FAVOURITES WITH NULL USER ID\n";
+    echo "---------------------------------------------\n";
+    $testCount++;
+    
+    $response = $favouriteService->getFavouriteProducts(['UyeID' => null]);
+    
+    if ($response->isSuccess()) {
+        $successCount++;
+        $favourites = $response->getData();
+        echo "✅ Request successful with NULL user ID\n";
+        echo "📦 Number of favourite products: " . count($favourites) . "\n";
     } else {
-        $testUserId = 1; // Default user ID for testing
-        $testProductCardId = 1; // Default product card ID for testing
-        $testFavouriteId = null;
+        $errorCount++;
+        echo "❌ Error: " . $response->getMessage() . "\n";
     }
-} else {
-    echo "✗ " . $defaultResponse->getMessage() . "\n";
-    $testUserId = 1;
-    $testProductCardId = 1;
-    $testFavouriteId = null;
-}
-
-echo "\n" . str_repeat("-", 50) . "\n\n";
-
-// Test 2: Get Favourite Products with Specific User ID
-echo "2. === GET FAVOURITE PRODUCTS (SPECIFIC USER) TEST ===\n";
-echo "Testing getFavouriteProducts() with specific user ID: $testUserId...\n";
-
-$userSpecificResponse = $favouriteProductService->getFavouriteProducts([
-    'UyeID' => $testUserId,
-    'KayitSayisi' => 10
-]);
-
-if ($userSpecificResponse->isSuccess()) {
-    echo "✓ " . $userSpecificResponse->getMessage() . "\n";
-    $userFavourites = $userSpecificResponse->getData();
-    echo "Found " . count($userFavourites) . " favourite products for user ID $testUserId.\n";
-} else {
-    echo "✗ " . $userSpecificResponse->getMessage() . "\n";
-}
-
-echo "\n" . str_repeat("-", 50) . "\n\n";
-
-// Test 3: Get Favourite Products with Date Range
-echo "3. === GET FAVOURITE PRODUCTS (DATE RANGE) TEST ===\n";
-echo "Testing getFavouriteProducts() with date range...\n";
-
-$dateRangeResponse = $favouriteProductService->getFavouriteProducts([
-    'UyeID' => 1,
-    'KayitSayisi' => 1
-]);
-
-if ($dateRangeResponse->isSuccess()) {
-    echo "✓ " . $dateRangeResponse->getMessage() . "\n";
-    $dateRangeFavourites = $dateRangeResponse->getData();
-    echo "Found " . count($dateRangeFavourites) . " favourite products in the last 30 days.\n";
-} else {
-    echo "✗ " . $dateRangeResponse->getMessage() . "\n";
-}
-
-echo "\n" . str_repeat("-", 50) . "\n\n";
-
-// Test 4: Add Favourite Product
-echo "4. === ADD FAVOURITE PRODUCT TEST ===\n";
-echo "Testing addFavouriteProduct() with user ID: $testUserId, product card ID: $testProductCardId...\n";
-
-$addResponse = $favouriteProductService->addFavouriteProduct($testUserId, $testProductCardId, 2.0);
-
-if ($addResponse->isSuccess()) {
-    echo "✓ " . $addResponse->getMessage() . "\n";
-    $addResult = $addResponse->getData();
-    echo "Add result data:\n";
-    print_r($addResult);
-} else {
-    echo "✗ " . $addResponse->getMessage() . "\n";
-    echo "Note: This might be expected if the product is already in favourites.\n";
-}
-
-echo "\n" . str_repeat("-", 50) . "\n\n";
-
-// Test 5: Add Favourite Product with Default Quantity
-echo "5. === ADD FAVOURITE PRODUCT (DEFAULT QUANTITY) TEST ===\n";
-echo "Testing addFavouriteProduct() with default quantity...\n";
-
-// Try with a different product card ID to avoid duplicates
-$alternativeProductCardId = $testProductCardId + 1;
-$addDefaultResponse = $favouriteProductService->addFavouriteProduct($testUserId, $alternativeProductCardId);
-
-if ($addDefaultResponse->isSuccess()) {
-    echo "✓ " . $addDefaultResponse->getMessage() . "\n";
-    $addDefaultResult = $addDefaultResponse->getData();
-    echo "Add result data:\n";
-    print_r($addDefaultResult);
-} else {
-    echo "✗ " . $addDefaultResponse->getMessage() . "\n";
-    echo "Note: This might be expected if the product is already in favourites.\n";
-}
-
-echo "\n" . str_repeat("-", 50) . "\n\n";
-
-// Test 6: Remove Favourite Product
-if ($testFavouriteId) {
-    echo "6. === REMOVE FAVOURITE PRODUCT TEST ===\n";
-    echo "Testing removeFavouriteProduct() with user ID: $testUserId, favourite ID: $testFavouriteId...\n";
-
-    $removeResponse = $favouriteProductService->removeFavouriteProduct($testUserId, $testFavouriteId);
-
-    if ($removeResponse->isSuccess()) {
-        echo "✓ " . $removeResponse->getMessage() . "\n";
-        $removeResult = $removeResponse->getData();
-        echo "Remove result data:\n";
-        print_r($removeResult);
-    } else {
-        echo "✗ " . $removeResponse->getMessage() . "\n";
-    }
-
-    echo "\n" . str_repeat("-", 50) . "\n\n";
-}
-
-// Test 7: Add Favourite Product with Invalid Data
-echo "7. === ADD FAVOURITE PRODUCT (INVALID DATA) TEST ===\n";
-echo "Testing addFavouriteProduct() with invalid user/product IDs...\n";
-
-$invalidAddResponse = $favouriteProductService->addFavouriteProduct(999999, 999999);
-
-if ($invalidAddResponse->isSuccess()) {
-    echo "✓ " . $invalidAddResponse->getMessage() . "\n";
-    echo "⚠ Warning: Invalid data was accepted, this might need investigation.\n";
-} else {
-    echo "✓ " . $invalidAddResponse->getMessage() . " (Expected for invalid data)\n";
-}
-
-echo "\n" . str_repeat("-", 50) . "\n\n";
-
-// Test 8: Remove Favourite Product with Invalid Data
-echo "8. === REMOVE FAVOURITE PRODUCT (INVALID DATA) TEST ===\n";
-echo "Testing removeFavouriteProduct() with invalid IDs...\n";
-
-$invalidRemoveResponse = $favouriteProductService->removeFavouriteProduct(999999, 999999);
-
-if ($invalidRemoveResponse->isSuccess()) {
-    echo "✓ " . $invalidRemoveResponse->getMessage() . "\n";
-    echo "⚠ Warning: Invalid data was accepted, this might need investigation.\n";
-} else {
-    echo "✓ " . $invalidRemoveResponse->getMessage() . " (Expected for invalid data)\n";
-}
-
-echo "\n" . str_repeat("-", 50) . "\n\n";
-
-// Test 9: Pagination Test
-echo "9. === PAGINATION TEST ===\n";
-echo "Testing getFavouriteProducts() with different page sizes...\n";
-
-$paginationTests = [
-    ['UyeID' => 1, 'KayitSayisi' => 1, 'SayfaNo' => 1],
-    ['UyeID' => 1, 'KayitSayisi' => 1, 'SayfaNo' => 2],
-    ['UyeID' => 1, 'KayitSayisi' => 1, 'SayfaNo' => 3]
-];
-
-foreach ($paginationTests as $index => $pagination) {
-    echo "Testing pagination " . ($index + 1) . ": " . json_encode($pagination) . "\n";
+    echo "\n";
     
-    $paginationResponse = $favouriteProductService->getFavouriteProducts($pagination);
+    // Test 2: Get favourite products with valid user ID
+    echo "🧪 Test 2: GET FAVOURITES WITH VALID USER ID\n";
+    echo "------------------------------------------------\n";
+    $testCount++;
     
-    if ($paginationResponse->isSuccess()) {
-        $paginationData = $paginationResponse->getData();
-        echo "✓ Page " . $pagination['SayfaNo'] . " with " . $pagination['KayitSayisi'] . 
-             " records: Found " . count($paginationData) . " items\n";
-    } else {
-        echo "✗ Pagination test failed: " . $paginationResponse->getMessage() . "\n";
-    }
-}
-
-echo "\n" . str_repeat("-", 50) . "\n\n";
-
-// Test 10: Performance Test
-echo "10. === PERFORMANCE TEST ===\n";
-echo "Testing multiple favourite product requests for performance...\n";
-
-$startTime = microtime(true);
-
-// Make 5 requests to test performance
-for ($i = 1; $i <= 5; $i++) {
-    $favouriteProductService->getFavouriteProducts(['UyeID' => 1, 'KayitSayisi' => 1]);
-    echo "Request $i completed...\n";
-}
-
-$endTime = microtime(true);
-$totalTime = $endTime - $startTime;
-$averageTime = $totalTime / 5;
-
-echo "✓ Performance test completed.\n";
-echo "- Total time for 5 requests: " . number_format($totalTime, 4) . " seconds\n";
-echo "- Average time per request: " . number_format($averageTime, 4) . " seconds\n";
-
-echo "\n" . str_repeat("-", 50) . "\n\n";
-
-// Test 11: Comprehensive Data Analysis
-echo "11. === COMPREHENSIVE DATA ANALYSIS TEST ===\n";
-echo "Analyzing favourite products data comprehensively...\n";
-
-$analysisResponse = $favouriteProductService->getFavouriteProducts(['UyeID' => 1, 'KayitSayisi' => 1]);
-
-if ($analysisResponse->isSuccess()) {
-    $allFavourites = $analysisResponse->getData();
+    $response = $favouriteService->getFavouriteProducts(['UyeID' => $testUserId]);
     
-    $userStats = [];
-    $productStats = [];
-    $quantityStats = [];
-    $dateStats = [];
-    
-    foreach ($allFavourites as $favourite) {
-        // User statistics
-        $userId = $favourite->UyeID ?? 'unknown';
-        $userStats[$userId] = ($userStats[$userId] ?? 0) + 1;
+    if ($response->isSuccess()) {
+        $successCount++;
+        $favourites = $response->getData();
+        echo "✅ Request successful with User ID: $testUserId\n";
+        echo "📦 Number of favourite products: " . count($favourites) . "\n";
         
-        // Product statistics
-        $productId = $favourite->UrunKartiID ?? 'unknown';
-        $productStats[$productId] = ($productStats[$productId] ?? 0) + 1;
-        
-        // Quantity statistics
-        $quantity = $favourite->UrunSayisi ?? 0;
-        $quantityStats[] = $quantity;
-        
-        // Date statistics
-        $date = $favourite->EklemeTarihi ?? null;
-        if ($date) {
-            $dateKey = date('Y-m', strtotime($date));
-            $dateStats[$dateKey] = ($dateStats[$dateKey] ?? 0) + 1;
+        if (!empty($favourites)) {
+            $firstFav = $favourites[0];
+            echo "\n📋 First Favourite Product Details:\n";
+            echo "   🆔 Product ID: " . ($firstFav->UrunKartiID ?? 'N/A') . "\n";
+            echo "   📝 Product Name: " . ($firstFav->UrunAdi ?? 'N/A') . "\n";
+            echo "   💰 Price: " . ($firstFav->UrunFiyati ?? 'N/A') . " " . ($firstFav->ParaBirimi ?? 'TL') . "\n";
+            echo "   📅 Added Date: " . ($firstFav->EklemeTarihi ?? 'N/A') . "\n";
+            echo "   🏷️ Stock Code: " . ($firstFav->StokKodu ?? 'N/A') . "\n";
+            echo "   📦 Stock Quantity: " . ($firstFav->ToplamStokAdedi ?? 'N/A') . "\n";
+            echo "   🔄 Variation Count: " . ($firstFav->VaryasyonSayisi ?? 'N/A') . "\n";
+            echo "   🖼️ Image URL: " . ($firstFav->ResimUrl ?? 'N/A') . "\n";
+            echo "   🔗 Product URL: " . ($firstFav->UrunUrl ?? 'N/A') . "\n";
         }
+    } else {
+        $errorCount++;
+        echo "❌ Error: " . $response->getMessage() . "\n";
     }
+    echo "\n";
     
-    echo "✓ Data analysis completed.\n";
-    echo "- Total favourite products analyzed: " . count($allFavourites) . "\n";
-    echo "- Unique users with favourites: " . count($userStats) . "\n";
-    echo "- Unique products in favourites: " . count($productStats) . "\n";
-    echo "- Average quantity per favourite: " . (count($quantityStats) > 0 ? number_format(array_sum($quantityStats) / count($quantityStats), 2) : 0) . "\n";
-    echo "- Most active user has: " . (count($userStats) > 0 ? max($userStats) : 0) . " favourite products\n";
-    echo "- Most popular product appears in: " . (count($productStats) > 0 ? max($productStats) : 0) . " favourite lists\n";
-    echo "- Monthly distribution:\n";
+    // Test 3: Get favourite products with date range
+    echo "🧪 Test 3: GET FAVOURITES WITH DATE RANGE\n";
+    echo "----------------------------------------\n";
+    $testCount++;
     
-    arsort($dateStats);
-    $topMonths = array_slice($dateStats, 0, 5, true);
-    foreach ($topMonths as $month => $count) {
-        echo "  * $month: $count favourites\n";
+    $startDate = date('Y-m-d', strtotime('-30 days'));
+    $endDate = date('Y-m-d');
+    
+    $response = $favouriteService->getFavouriteProducts([
+        'UyeID' => $testUserId,
+        'BaslangicTarihi' => $startDate,
+        'BitisTarihi' => $endDate
+    ]);
+    
+    if ($response->isSuccess()) {
+        $successCount++;
+        $favourites = $response->getData();
+        echo "✅ Request successful with date range\n";
+        echo "📅 Start Date: $startDate\n";
+        echo "📅 End Date: $endDate\n";
+        echo "📦 Number of favourite products: " . count($favourites) . "\n";
+    } else {
+        $errorCount++;
+        echo "❌ Error: " . $response->getMessage() . "\n";
     }
+    echo "\n";
     
-} else {
-    echo "✗ Data analysis failed: " . $analysisResponse->getMessage() . "\n";
-}
-
-echo "\n" . str_repeat("=", 50) . "\n";
-echo "FAVOURITE PRODUCT SERVICE TEST SUITE COMPLETED!\n";
-echo str_repeat("=", 50) . "\n\n";
-
-echo "SUMMARY:\n";
-echo "- All FavouriteProductService methods have been tested\n";
-echo "- Read, write, and delete operations tested\n";
-echo "- Parameter validation and error handling tested\n";
-echo "- Pagination and performance tests completed\n";
-echo "- Comprehensive data analysis performed\n";
-echo "- Real API interactions were performed for all tests\n"; 
+    // Test 4: Get favourite products with pagination
+    echo "🧪 Test 4: GET FAVOURITES WITH PAGINATION\n";
+    echo "-------------------------------------\n";
+    $testCount++;
+    
+    $pageSize = 10;
+    $pageNumber = 1;
+    
+    $response = $favouriteService->getFavouriteProducts([
+        'UyeID' => $testUserId,
+        'KayitSayisi' => $pageSize,
+        'SayfaNo' => $pageNumber
+    ]);
+    
+    if ($response->isSuccess()) {
+        $successCount++;
+        $favourites = $response->getData();
+        echo "✅ Request successful with pagination\n";
+        echo "📑 Page Number: $pageNumber\n";
+        echo "📊 Page Size: $pageSize\n";
+        echo "📦 Number of favourite products: " . count($favourites) . "\n\n";
+        
+        if (!empty($favourites)) {
+            foreach ($favourites as $index => $fav) {
+                echo "📋 Favourite Product #" . ($index + 1) . " Details:\n";
+                echo "   🆔 Product ID: " . ($fav->UrunKartiID ?? 'N/A') . "\n";
+                echo "   📝 Product Name: " . ($fav->UrunAdi ?? 'N/A') . "\n";
+                echo "   💰 Price: " . ($fav->UrunFiyati ?? 'N/A') . " " . ($fav->ParaBirimi ?? 'TL') . "\n";
+                echo "   📅 Added Date: " . ($fav->EklemeTarihi ?? 'N/A') . "\n";
+                echo "   🏷️ Stock Code: " . ($fav->StokKodu ?? 'N/A') . "\n";
+                echo "   📦 Stock Quantity: " . ($fav->ToplamStokAdedi ?? 'N/A') . "\n";
+                echo "   🔄 Variation Count: " . ($fav->VaryasyonSayisi ?? 'N/A') . "\n";
+                echo "   🖼️ Image URL: " . ($fav->ResimUrl ?? 'N/A') . "\n";
+                echo "   🔗 Product URL: " . ($fav->UrunUrl ?? 'N/A') . "\n\n";
+            }
+        }
+    } else {
+        $errorCount++;
+        echo "❌ Error: " . $response->getMessage() . "\n";
+    }
+    echo "\n";
+    
+    // Test 5: Add favourite product with invalid user
+    echo "🧪 Test 5: ADD FAVOURITE WITH INVALID USER\n";
+    echo "-----------------------------------------\n";
+    $testCount++;
+    
+    $response = $favouriteService->addFavouriteProduct(0, $testProductId);
+    
+    if ($response->isSuccess()) {
+        $successCount++;
+        echo "✅ Add attempt successful with invalid user\n";
+        echo "📝 Result: " . $response->getMessage() . "\n";
+    } else {
+        $errorCount++;
+        echo "❌ Error: " . $response->getMessage() . "\n";
+    }
+    echo "\n";
+    
+    // Test 6: Add favourite product with valid user
+    echo "🧪 Test 6: ADD FAVOURITE WITH VALID USER\n";
+    echo "--------------------------------------------\n";
+    $testCount++;
+    
+    $response = $favouriteService->addFavouriteProduct($testUserId, $testProductId);
+    
+    if ($response->isSuccess()) {
+        $successCount++;
+        echo "✅ Add successful with valid user\n";
+        echo "📝 Result: " . $response->getMessage() . "\n";
+    } else {
+        $errorCount++;
+        echo "❌ Error: " . $response->getMessage() . "\n";
+    }
+    echo "\n";
+    
+    // Test results
+    echo "========================================\n";
+    echo "           TEST RESULTS\n";
+    echo "========================================\n";
+    echo "📊 Total Tests: $testCount\n";
+    echo "✅ Successful: $successCount\n";
+    echo "❌ Failed: $errorCount\n";
+    echo "📈 Success Rate: " . round(($successCount / $testCount) * 100, 1) . "%\n\n";
+    
+    echo "Tested Functions:\n";
+    echo "• getFavouriteProducts() - With different parameters\n";
+    echo "• addFavouriteProduct() - With invalid and valid users\n";
+    echo "\nTests completed!\n";
+    
+} catch (Exception $e) {
+    echo "💥 ERROR: " . $e->getMessage() . "\n";
+    echo "📂 File: " . $e->getFile() . "\n";
+    echo "📍 Line: " . $e->getLine() . "\n";
+} 

@@ -52,31 +52,32 @@ class FavouriteProductService
 
             // Check for API error first
             if (isset($response->GetFavoriUrunlerResult->IsError) && $response->GetFavoriUrunlerResult->IsError) {
-                return ApiResponse::error($response->GetFavoriUrunlerResult->ErrorMessage ?? 'Bilinmeyen bir hata oluştu');
+                return ApiResponse::error($response->GetFavoriUrunlerResult->ErrorMessage ?? 'Unknown error occurred');
             }
 
-            $result = $response->GetFavoriUrunlerResult->Urunler ?? [];
+            $result = $response->GetFavoriUrunlerResult->Urunler ?? null;
 
-            // Handle the Urunler structure (can be object or array)
-            if (is_object($result)) {
-                // Convert stdClass to array for easier handling
-                $resultArray = (array)$result;
-                if (!empty($resultArray)) {
-                    foreach ($resultArray as $favoriUrun) {
-                        $favouriteProducts[] = new FavouriteProductModel($favoriUrun);
+            // Handle the Urunler structure
+            if (is_object($result) && isset($result->WebFavoriUrunler)) {
+                $webFavoriUrunler = $result->WebFavoriUrunler;
+                
+                // If single product, convert to array
+                if (!is_array($webFavoriUrunler)) {
+                    $webFavoriUrunler = [$webFavoriUrunler];
+                }
+                
+                // Process each product
+                foreach ($webFavoriUrunler as $favoriUrun) {
+                    if (is_object($favoriUrun)) {
+                        $favouriteProducts[] = new FavouriteProductModel((array)$favoriUrun);
                     }
                 }
-            } elseif (is_array($result) && !empty($result)) {
-                // If result is an array, process each WebFavoriUrunler
-                foreach ($result as $favoriUrun) {
-                    $favouriteProducts[] = new FavouriteProductModel($favoriUrun);
-                }
             }
             
-            return ApiResponse::success($favouriteProducts, 'Favori ürünler başarıyla getirildi.');
+            return ApiResponse::success($favouriteProducts, 'Favourite products retrieved successfully.');
             
         } catch (SoapFault $e) {
-            return ApiResponse::error('Favori ürünler getirilirken bir hata oluştu: ' . $e->getMessage());
+            return ApiResponse::error('Error retrieving favourite products: ' . $e->getMessage());
         }
     }
 
@@ -93,9 +94,9 @@ class FavouriteProductService
         
         try {
             $requestData = [
-                'UyeID' => $userId,
-                'UrunKartiID' => $productCardId,
                 'Adet' => $quantity,
+                'UrunKartiID' => $productCardId,
+                'UyeID' => $userId,
             ];
 
             $response = $client->__soapCall("AddFavoriUrun", [
@@ -105,30 +106,24 @@ class FavouriteProductService
                 ]
             ]);
 
-            print_r($response);
-
             if (isset($response->AddFavoriUrunResult)) {
                 $result = $response->AddFavoriUrunResult;
                 
-                // Debug: Response detaylarını logla
-                error_log("AddFavoriUrun Response - IsError: " . json_encode($result->IsError ?? null) . 
-                         ", ErrorMessage: " . json_encode($result->ErrorMessage ?? null));
-                
-                // IsError kontrolü - WSDL'e göre boolean field
-                $isError = $result->IsError ?? false; // Default false (başarılı kabul et)
+                // IsError check - boolean field according to WSDL
+                $isError = $result->IsError ?? false; // Default false (consider as successful)
                 
                 if ($isError === true) {
-                    return ApiResponse::error($result->ErrorMessage ?? 'Bilinmeyen bir hata oluştu');
+                    return ApiResponse::error($result->ErrorMessage ?? 'Unknown error occurred');
                 }
                 
-                return ApiResponse::success($result, 'Favori ürün başarıyla eklendi.');
+                return ApiResponse::success($result, 'Favourite product added successfully.');
             }
             
-            return ApiResponse::error('AddFavoriUrunResult bulunamadı - API yanıt yapısı beklenenden farklı.');
+            return ApiResponse::error('AddFavoriUrunResult not found - API response structure differs from expected.');
             
         } catch (SoapFault $e) {
             error_log("AddFavoriUrun SoapFault: " . $e->getMessage());
-            return ApiResponse::error('Favori ürün eklenirken bir hata oluştu: ' . $e->getMessage());
+            return ApiResponse::error('Error adding favourite product: ' . $e->getMessage());
         }
     }
 
@@ -160,15 +155,15 @@ class FavouriteProductService
             if (isset($response->RemoveFavoriUrunResult)) {
                 $result = $response->RemoveFavoriUrunResult;
                 if ($result->IsError ?? true) {
-                    return ApiResponse::error($result->ErrorMessage ?? 'Bilinmeyen bir hata oluştu');
+                    return ApiResponse::error($result->ErrorMessage ?? 'Unknown error occurred');
                 }
-                return ApiResponse::success($result, 'Favori ürün başarıyla silindi.');
+                return ApiResponse::success($result, 'Favourite product removed successfully.');
             }
             
-            return ApiResponse::error('Favori ürün silinemedi.');
+            return ApiResponse::error('Failed to remove favourite product.');
             
         } catch (SoapFault $e) {
-            return ApiResponse::error('Favori ürün silinirken bir hata oluştu: ' . $e->getMessage());
+            return ApiResponse::error('Error removing favourite product: ' . $e->getMessage());
         }
     }
 

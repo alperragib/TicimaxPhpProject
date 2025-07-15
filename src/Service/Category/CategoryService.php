@@ -29,9 +29,9 @@ class CategoryService
      * @param int $categoryId   (optional) The specific category ID to fetch. Defaults to 0 for all categories.
      * @param string|null $language (optional) The language code (e.g., 'en', 'tr'). Null or omitted for default.
      * @param int|null $parentId (optional) The parent category ID. Null or omitted for top-level categories.
-     * @return CategoryModel[]   Array of CategoryModel objects representing the categories.
+     * @return ApiResponse
      */
-    public function getCategories(int $categoryId = 0, ?string $language = null, ?int $parentId = null): array
+    public function getCategories(int $categoryId = 0, ?string $language = null, ?int $parentId = null): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         $categories = [];
@@ -56,11 +56,14 @@ class CategoryService
             foreach ($catArr as $cat) {
                 $categories[] = new CategoryModel($cat);
             }
+            
+            return ApiResponse::success(
+                $categories,
+                'Categories retrieved successfully.'
+            );
         } catch (SoapFault $e) {
-            // Handle or log error
+            return ApiResponse::error('Error retrieving categories: ' . $e->getMessage());
         }
-
-        return $categories;
     }
 
     /**
@@ -81,12 +84,12 @@ class CategoryService
             ]);
             
             if (isset($response->SaveKategoriResult)) {
-                return ApiResponse::success($response->SaveKategoriResult, 'Kategori başarıyla kaydedildi.');
+                return ApiResponse::success($response->SaveKategoriResult, 'Category saved successfully.');
             }
             
-            return ApiResponse::error('Kategori kaydedilemedi.');
+            return ApiResponse::error('Failed to save category.');
         } catch (SoapFault $e) {
-            return ApiResponse::error('Kategori kaydedilirken bir hata oluştu: ' . $e->getMessage());
+            return ApiResponse::error('Error saving category: ' . $e->getMessage());
         }
     }
 }

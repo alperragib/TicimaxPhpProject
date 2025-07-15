@@ -26,7 +26,7 @@ try {
     echo "Getting cart for User ID: $userId (John)\n\n";
 
     // Call the function
-    $result = $cartService->getSepet($userId, $cartId, $campaignId);
+    $result = $cartService->getCart($userId, $cartId, $campaignId);
 
     if ($result !== null) {
         echo "Cart Details:\n";

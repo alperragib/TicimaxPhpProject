@@ -10,7 +10,7 @@ use AlperRagib\Ticimax\Model\BaseModel;
  */
 class CategoryModel extends BaseModel
 {
-    // Tüm ortak metodlar BaseModel'den geliyor:
+    // All common methods come from BaseModel:
     // - __construct
     // - convertToArray
     // - __get, __set, __isset
