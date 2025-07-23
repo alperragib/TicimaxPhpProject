@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AlperRagib\Ticimax\Service\Brand;
 
 use AlperRagib\Ticimax\Model\Brand\BrandModel;
+use AlperRagib\Ticimax\Model\Response\ApiResponse;
 use AlperRagib\Ticimax\TicimaxRequest;
 use SoapFault;
 

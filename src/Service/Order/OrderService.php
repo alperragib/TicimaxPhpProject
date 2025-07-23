@@ -77,7 +77,7 @@ class OrderService
                 'StrPaketlemeDurumu'         => '',
                 'StrSiparisDurumu'           => '',
                 'StrSiparisID'               => '',
-                'TedarikciID'                => -1,  // -1 = tüm tedarikçiler
+                'TedarikciID'                => -1,  // -1 = all suppliers
                 'TeslimatGunuBas'            => null,
                 'TeslimatGunuSon'            => null,
                 'TeslimatMagazaID'           => null,
@@ -175,102 +175,79 @@ class OrderService
     {
         $client = $this->request->soap_client($this->apiUrl);
         try {
-            // Creating required payment information for order
+            // Creating required payment information for order (WebSiparisSaveOdeme)
             $odeme = [
-                'BankaKomisyonu' => 0.0,
-                'HavaleHesapID' => null,
-                'KapidaOdemeTutari' => 0.0,
-                'OdemeDurumu' => 1, // Payment status (e.g.: 1 = Paid)
-                'OdemeIndirimi' => 0.0,
-                'OdemeNotu' => '',
-                'OdemeSecenekID' => 0, // Defined payment option ID
-                'OdemeTipi' => 1, // Payment type (e.g.: 1 = Credit Card)
-                'TaksitSayisi' => 1,
-                'Tarih' => date('c'), // ISO 8601 format
-                'Tutar' => 0.0
+                'BankaKomisyonu' => $this->data['Odeme']['BankaKomisyonu'] ?? 0.0,
+                'HavaleHesapID' => $this->data['Odeme']['HavaleHesapID'] ?? null,
+                'KapidaOdemeTutari' => $this->data['Odeme']['KapidaOdemeTutari'] ?? 0.0,
+                'OdemeDurumu' => $this->data['Odeme']['OdemeDurumu'] ?? 1, // Required: Payment status
+                'OdemeIndirimi' => $this->data['Odeme']['OdemeIndirimi'] ?? 0.0,
+                'OdemeNotu' => $this->data['Odeme']['OdemeNotu'] ?? '',
+                'OdemeSecenekID' => $this->data['Odeme']['OdemeSecenekID'] ?? 0, // Required: Defined payment option ID
+                'OdemeTipi' => $this->data['Odeme']['OdemeTipi'] ?? 1, // Required: Payment type
+                'TaksitSayisi' => $this->data['Odeme']['TaksitSayisi'] ?? 1,
+                'Tarih' => $this->data['Odeme']['Tarih'] ?? date('c'),
+                'Tutar' => $this->data['Odeme']['Tutar'] ?? 0.0 // Required
             ];
 
-            // Sample structure for order products
+            // Sample structure for order products (List<WebSiparisSaveUrun>)
             $urunler = [];
             foreach ($this->data['Urunler'] ?? [] as $urun) {
                 $urunler[] = [
-                    'Adet' => $urun['Adet'] ?? 1,
+                    'Adet' => $urun['Adet'] ?? 1, // Required
                     'KdvOrani' => $urun['KdvOrani'] ?? 18,
                     'KdvTutari' => $urun['KdvTutari'] ?? 0.0,
                     'Maliyet' => $urun['Maliyet'] ?? 0.0,
-                    'Tutar' => $urun['Tutar'] ?? 0.0,
-                    'UrunID' => $urun['UrunID'] ?? 0
+                    'Tutar' => $urun['Tutar'] ?? 0.0, // Required
+                    'UrunID' => $urun['UrunID'] ?? 0 // Required
                 ];
             }
 
-            // Main order structure - WSDL WebSiparisSaveRequest yapısına uygun (CORRECTED FIELD NAMES)
+            // Main order structure - WebSiparisSaveRequest
             $siparis = [
-                // ZORUNLU - Kullanıcı Bilgileri (WSDL: UyeID, UyeAdi, Mail)
-                'UyeID' => $this->data['UyeID'] ?? $this->data['UyeId'] ?? 0,  // CORRECTED: UyeID (capital D)
-                'UyeAdi' => $this->data['UyeAdi'] ?? 'Test User',
-                'UyeSoyadi' => $this->data['UyeSoyadi'] ?? 'Test',  // ADDED: UyeSoyadi required
-                'Mail' => $this->data['Mail'] ?? $this->data['UyeMail'] ?? 'test@example.com',  // CORRECTED: Mail not UyeMail
+                // Required fields according to documentation
+                'FaturaAdresId' => $this->data['FaturaAdresId'] ?? 0, // Required: Registered invoice address ID
+                'KargoAdresId' => $this->data['KargoAdresId'] ?? 0,  // Required: Registered shipping address ID
+                'KargoFirmaId' => $this->data['KargoFirmaId'] ?? 0,  // Required: Registered shipping company ID
+                'UyeId' => $this->data['UyeId'] ?? 0,  // Required: Member ID
+                'UrunTutari' => $this->data['UrunTutari'] ?? 0.0, // Required: Product total amount
                 
-                // ZORUNLU - Adres Bilgileri (WSDL: TeslimatAdresi, FaturaAdresi objects)
-                'TeslimatAdresi' => [  // CORRECTED: TeslimatAdresi (with 'i')
-                    'Adres' => $this->data['TeslimatAdresi']['Adres'] ?? $this->data['TeslimatAdres']['Adres'] ?? 'Test Teslimat Adresi',
-                    'Il' => $this->data['TeslimatAdresi']['Il'] ?? $this->data['TeslimatAdres']['Il'] ?? 'İstanbul',
-                    'Ilce' => $this->data['TeslimatAdresi']['Ilce'] ?? $this->data['TeslimatAdres']['Ilce'] ?? 'Beyoğlu',
-                    'PostaKodu' => $this->data['TeslimatAdresi']['PostaKodu'] ?? $this->data['TeslimatAdres']['PostaKodu'] ?? '34000',
-                    'AliciAdi' => $this->data['TeslimatAdresi']['AliciAdi'] ?? $this->data['TeslimatAdres']['AliciAdi'] ?? 'Test User',
-                    'AliciTelefon' => $this->data['TeslimatAdresi']['AliciTelefon'] ?? $this->data['TeslimatAdres']['AliciTelefon'] ?? '0555 123 45 67',
-                    'Ulke' => $this->data['TeslimatAdresi']['Ulke'] ?? $this->data['TeslimatAdres']['Ulke'] ?? 'Türkiye'
-                ],
-                'FaturaAdresi' => [  // CORRECTED: FaturaAdresi (with 'i')
-                    'Adres' => $this->data['FaturaAdresi']['Adres'] ?? $this->data['FaturaAdres']['Adres'] ?? 'Test Fatura Adresi',
-                    'Il' => $this->data['FaturaAdresi']['Il'] ?? $this->data['FaturaAdres']['Il'] ?? 'İstanbul',
-                    'Ilce' => $this->data['FaturaAdresi']['Ilce'] ?? $this->data['FaturaAdres']['Ilce'] ?? 'Beyoğlu',
-                    'PostaKodu' => $this->data['FaturaAdresi']['PostaKodu'] ?? $this->data['FaturaAdres']['PostaKodu'] ?? '34000',
-                    'AdSoyad' => $this->data['FaturaAdresi']['AdSoyad'] ?? $this->data['FaturaAdres']['AdSoyad'] ?? 'Test User',
-                    'FirmaAdi' => $this->data['FaturaAdresi']['FirmaAdi'] ?? $this->data['FaturaAdres']['FirmaAdi'] ?? '',
-                    'VergiDairesi' => $this->data['FaturaAdresi']['VergiDairesi'] ?? $this->data['FaturaAdres']['VergiDairesi'] ?? '',
-                    'VergiNo' => $this->data['FaturaAdresi']['VergiNo'] ?? $this->data['FaturaAdres']['VergiNo'] ?? '',
-                    'isKurumsal' => $this->data['FaturaAdresi']['isKurumsal'] ?? $this->data['FaturaAdres']['isKurumsal'] ?? false,
-                    'Ulke' => $this->data['FaturaAdresi']['Ulke'] ?? $this->data['FaturaAdres']['Ulke'] ?? 'Türkiye'
-                ],
-                
-                // Finansal Bilgiler
+                // Optional fields
                 'IndirimTutari' => $this->data['IndirimTutari'] ?? 0.0,
                 'KargoTutari' => $this->data['KargoTutari'] ?? 0.0,
-                'ToplamTutar' => $this->data['ToplamTutar'] ?? 0.0,  // ADDED: ToplamTutar required
-                'ToplamKdv' => $this->data['ToplamKdv'] ?? $this->data['UrunTutariKdv'] ?? 0.0,  // CORRECTED: ToplamKdv
-                
-                // Kargo ve Para Birimi (WSDL FIELD NAMES)
-                'KargoFirmaID' => $this->data['KargoFirmaID'] ?? $this->data['KargoFirmaId'] ?? 2,  // CORRECTED: KargoFirmaID (capital ID)
                 'ParaBirimi' => $this->data['ParaBirimi'] ?? 'TRY',
-                
-                // Sipariş Detayları
                 'SiparisKaynagi' => $this->data['SiparisKaynagi'] ?? 'Web',
                 'SiparisNotu' => $this->data['SiparisNotu'] ?? '',
+                'UrunTutariKdv' => $this->data['UrunTutariKdv'] ?? 0.0,
                 'TeslimatSaati' => $this->data['TeslimatSaati'] ?? '',
-                'TeslimatTarihi' => $this->data['TeslimatTarihi'] ?? date('c'),  // FIXED: TeslimatTarihi not TeslimatGunu
+                'TeslimatTarihi' => $this->data['TeslimatTarihi'] ?? date('c'),
                 
-                // Ürünler ve Ödeme
-                'Urunler' => $urunler,
-                'Odemeler' => [$odeme] // Array olarak gönder
+                // Required complex objects
+                'Odeme' => $odeme,
+                'Urunler' => $urunler
             ];
 
-            // Making API call - WSDL'ye göre siparis object olmalı
+            // Validate required fields
+            $requiredFields = ['FaturaAdresId', 'KargoAdresId', 'KargoFirmaId', 'UyeId', 'UrunTutari'];
+            foreach ($requiredFields as $field) {
+                if (empty($siparis[$field])) {
+                    return ApiResponse::error("Required field missing: $field");
+                }
+            }
+
+            // Making API call
             $response = $client->__soapCall("SaveSiparis", [
                 [
                     'UyeKodu' => $this->request->key,
-                    'siparis' => (object)$siparis  // Object olarak gönder - WSDL gereksinimi
+                    'siparis' => (object)$siparis
                 ]
             ]);
 
-            // Response validation - WSDL WebSiparisSaveResponse yapısına göre
+            // Response validation - WebSiparisSaveResponse structure
             if (isset($response->SaveSiparisResult)) {
                 $result = $response->SaveSiparisResult;
                 
-                // WebSiparisSaveResponse extends WebServisResponse
-                // IsError field'ı WebServisResponse'dan geliyor
                 if (isset($result->IsError) && $result->IsError === false) {
-                    // Başarılı - SiparisDetayi WebSiparis object'i içerir
                     $orderDetails = $result->SiparisDetayi ?? null;
                     $orderId = $orderDetails->ID ?? null;
                     
@@ -283,40 +260,40 @@ class OrderService
                     );
                 }
                 
-                // Hata durumu - Messages array'i kontrol et
+                // Error handling
                 $errorMessages = [];
-                if (isset($result->Messages)) {
-                    $messages = is_array($result->Messages) ? $result->Messages : [$result->Messages];
-                    foreach ($messages as $message) {
+                if (isset($result->Messages) && is_array($result->Messages)) {
+                    foreach ($result->Messages as $message) {
                         if (isset($message->ErrorMessage)) {
                             $errorMessages[] = $message->ErrorMessage;
                         }
                     }
                 }
                 
-                $fullErrorMessage = !empty($errorMessages) 
+                $errorMessage = !empty($errorMessages) 
                     ? implode('. ', $errorMessages)
                     : ($result->ErrorMessage ?? 'Unknown error');
                     
-                error_log("Order save error: " . $fullErrorMessage);
-                return ApiResponse::error('Order save failed: ' . $fullErrorMessage);
+                error_log("Order save error: " . $errorMessage);
+                return ApiResponse::error('Order save failed: ' . $errorMessage);
             }
 
+            return ApiResponse::error('Invalid response format from API');
+
         } catch (SoapFault $e) {
-            // SOAP error can be logged if needed
-            error_log("SOAP Error: " . $e->getMessage());
+            error_log("SOAP Error in SaveSiparis: " . $e->getMessage());
+            return ApiResponse::error('SOAP Error: ' . $e->getMessage());
         }
-        return ApiResponse::error('An unexpected error occurred.');
     }
 
     /**
      * Get order payments
-     * @param int $siparisId Order ID
-     * @param int $odemeId Payment ID (optional, default 0)
-     * @param bool|null $isAktarildi Transfer status (optional)
+     * @param int $orderId Order ID
+     * @param int $paymentId Payment ID (optional, 0 for all)
+     * @param bool|null $isTransferred Filter by transfer status (optional)
      * @return ApiResponse
      */
-    public function getOrderPayments(int $siparisId, int $odemeId = 0, ?bool $isAktarildi = null): ApiResponse
+    public function getOrderPayments(int $orderId, int $paymentId = 0, ?bool $isTransferred = null): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         
@@ -324,9 +301,9 @@ class OrderService
             $response = $client->__soapCall("SelectSiparisOdeme", [
                 [
                     'UyeKodu' => $this->request->key,
-                    'siparisId' => $siparisId,
-                    'odemeId' => $odemeId,
-                    'isAktarildi' => $isAktarildi
+                    'siparisId' => $orderId,
+                    'odemeId' => $paymentId,
+                    'isAktarildi' => $isTransferred
                 ]
             ]);
             
@@ -381,11 +358,11 @@ class OrderService
 
     /**
      * Get order products
-     * @param int $siparisId Order ID
-     * @param bool $iptalEdilmisUrunler Should cancelled products be included?
+     * @param int $orderId Order ID
+     * @param bool $includeCancelledProducts Include cancelled products (default false)
      * @return ApiResponse
      */
-    public function getOrderProducts(int $siparisId, bool $iptalEdilmisUrunler = false): ApiResponse
+    public function getOrderProducts(int $orderId, bool $includeCancelledProducts = false): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         
@@ -393,8 +370,8 @@ class OrderService
             $response = $client->__soapCall("SelectSiparisUrun", [
                 [
                     'UyeKodu' => $this->request->key,
-                    'siparisId' => $siparisId,
-                    'iptalEdilmisUrunler' => $iptalEdilmisUrunler
+                    'siparisId' => $orderId,
+                    'iptalEdilmisUrunler' => $includeCancelledProducts
                 ]
             ]);
             

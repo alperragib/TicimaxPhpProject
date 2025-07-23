@@ -24,7 +24,7 @@ try {
     $testCount = 0;
     $successCount = 0;
     $errorCount = 0;
-    
+    $UyeId=0;
     echo "========================================\n";
     echo "           SHIPPING TESTS\n";
     echo "========================================\n\n";

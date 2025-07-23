@@ -2,8 +2,8 @@
 // Ticimax API config 
 
 return [
-    'mainDomain' => 'https://example.com',
-    'apiKey' => 'xxxxxxxxxxxxxxxxxx',
+    'mainDomain' => 'https://scentsan.com',
+    'apiKey' => 'A6CZ675NOFUZ6UXP17F61CEQJNYF79',
 ];
 
 // Set variables for use in test files - Ticimax constructor needs (domain, key)

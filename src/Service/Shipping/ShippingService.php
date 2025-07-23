@@ -53,7 +53,7 @@ class ShippingService
                 
                 // Check if result is empty
                 if (empty((array)$result)) {
-                    return ApiResponse::success([], 'Bu istek için kargo seçeneği bulunmamaktadır.');
+                    return ApiResponse::success([], 'No shipping options available for this request.');
                 }
                 
                 // Handle both single object and array responses
@@ -62,20 +62,20 @@ class ShippingService
                 } elseif (is_array($result)) {
                     $companies = $result;
                 } else {
-                    return ApiResponse::error('Beklenmeyen yanıt formatı');
+                    return ApiResponse::error('Unexpected response format');
                 }
 
                 foreach ($companies as $company) {
                     $shippingCompanies[] = new ShippingCompanyModel($company);
                 }
 
-                return ApiResponse::success($shippingCompanies, 'Kargo seçenekleri başarıyla getirildi.');
+                return ApiResponse::success($shippingCompanies, 'Shipping options retrieved successfully.');
             }
 
-            return ApiResponse::error('Yanıtta kargo seçeneği bulunamadı.');
+            return ApiResponse::error('No shipping options found in response.');
 
         } catch (SoapFault $e) {
-            return ApiResponse::error('Kargo seçenekleri getirilirken bir hata oluştu: ' . $e->getMessage());
+            return ApiResponse::error('Error retrieving shipping options: ' . $e->getMessage());
         }
     }
 
@@ -125,13 +125,13 @@ class ShippingService
                     }
                 }
 
-                return ApiResponse::success($companies, 'Kargo firmaları başarıyla getirildi.');
+                return ApiResponse::success($companies, 'Shipping companies retrieved successfully.');
             }
 
-            return ApiResponse::success([], 'Kargo firması bulunamadı.');
+            return ApiResponse::success([], 'No shipping companies found.');
 
         } catch (SoapFault $e) {
-            return ApiResponse::error('Kargo firmaları getirilirken bir hata oluştu: ' . $e->getMessage());
+            return ApiResponse::error('Error retrieving shipping companies: ' . $e->getMessage());
         }
     }
 } 

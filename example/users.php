@@ -3,12 +3,10 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use AlperRagib\Ticimax\Ticimax;
 
-// Set your Ticimax domain and API key
 $config = require __DIR__ . '/config.php';
 $mainDomain = $config['mainDomain'];
 $apiKey = $config['apiKey'];
 
-// Instantiate the main Ticimax entrypoint
 $ticimax = new Ticimax($mainDomain, $apiKey);
 $userService = $ticimax->userService();
 
@@ -61,12 +59,7 @@ $userSettings = [
 
 $saveUserResponse = $userService->saveUser($newUserData, $userSettings);
 
-if ($saveUserResponse->isSuccess()) {
-    $savedUserId = $saveUserResponse->getData();
-    echo "✓ " . $saveUserResponse->getMessage() . " User ID: $savedUserId\n";
-} else {
-    echo "✗ " . $saveUserResponse->getMessage() . "\n";
-}
+print_r($saveUserResponse);
 
 echo "\n=== List Users ===\n";
 
@@ -107,42 +100,6 @@ $pagination = [
 ];
 
 $usersResponse = $userService->getUsers($filters, $pagination);
+print_r($usersResponse);
 
-// Yeni ApiResponse formatını kontrol edelim
-if ($usersResponse->isSuccess()) {
-    echo "✓ " . $usersResponse->getMessage() . "\n";
-    $users = $usersResponse->getData();
-} else {
-    echo "✗ " . $usersResponse->getMessage() . "\n";
-    $users = [];
-}
 
-foreach ($users as $user) {
-    $id = $user->ID ?? '[No ID]';
-    $aktif = $user->Aktif ?? '[No Aktif]';
-    $telefon = $user->Telefon ?? '[No Telefon]';
-    $cepTelefonu = $user->CepTelefonu ?? '[No CepTelefonu]';
-    $isim = $user->Isim ?? '[No Isim]';
-    $soyisim = $user->Soyisim ?? '[No Soyisim]';
-    $mail = $user->Mail ?? '[No Mail]';
-    $onay = $user->Onay ?? '[No Onay]';
-    $sifre = $user->Sifre ?? '[No Sifre]';
-    $vKayitDil = $user->VKayitDil ?? '[No VKayitDil]';
-    $uyelikTipi = $user->UyelikTipi ?? '[No UyelikTipi]';
-    $uyelikTipiID = $user->UyelikTipiID ?? '[No UyelikTipiID]';
-
-    echo "\nID               : $id";
-    echo "\nAktif            : $aktif";
-    echo "\nTelefon          : $telefon";
-    echo "\nCepTelefonu      : $cepTelefonu";
-    echo "\nIsim             : $isim";
-    echo "\nSoyisim          : $soyisim";
-    echo "\nMail             : $mail";
-    echo "\nOnay             : $onay";
-    echo "\nSifre            : $sifre";
-    echo "\nVKayitDil        : $vKayitDil";
-    echo "\nUyelikTipi       : $uyelikTipi";
-    echo "\nUyelikTipiID     : $uyelikTipiID";
-
-    echo "\n\n---------------------------------------------\n";
-}

@@ -221,7 +221,7 @@ class ProductService
      * @param array $pagination Pagination settings
      * @return ApiResponse
      */
-    public function GetProductReviews(int $urunKartId, array $pagination = []): ApiResponse
+    public function getProductReviews(int $urunKartId, array $pagination = []): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         try {
@@ -273,7 +273,7 @@ class ProductService
      * @param array $pagination Pagination settings
      * @return ApiResponse
      */
-    public function GetProductVariations(array $filters = [], array $pagination = []): ApiResponse
+    public function getProductVariations(array $filters = [], array $pagination = []): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         try {
@@ -333,7 +333,7 @@ class ProductService
      * @param string $currencyCode Currency code (e.g. 'TRY', 'USD')
      * @return ApiResponse
      */
-    public function GetInstallmentOptions(float $amount, int $maxInstallments, string $currencyCode = 'TRY'): ApiResponse
+    public function getInstallmentOptions(float $amount, int $maxInstallments, string $currencyCode = 'TRY'): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         try {
@@ -365,7 +365,7 @@ class ProductService
      * @param string $storeCode Store code to get stock information for
      * @return ApiResponse
      */
-    public function GetStoreStock(string $storeCode): ApiResponse
+    public function getStoreStock(string $storeCode): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         try {
@@ -401,7 +401,7 @@ class ProductService
      *                         Each variation should have ['ID' => int, 'StokAdedi' => int]
      * @return ApiResponse
      */
-    public function UpdateStockQuantity(array $variations): ApiResponse
+    public function updateStockQuantity(array $variations): ApiResponse
     {
         $client = $this->request->soap_client($this->apiUrl);
         try {

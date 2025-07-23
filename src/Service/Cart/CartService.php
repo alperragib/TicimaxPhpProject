@@ -151,49 +151,47 @@ class CartService
    
 
     /**
-     * Get list of carts
-     * 
-     * @param int|null $sepetId Cart ID (-1 means no filtering)
-     * @param int|null $uyeId User ID (-1 means no filtering)
-     * @param string|null $baslangicTarihi Start date (Y-m-d format)
-     * @param string|null $bitisTarihi End date (Y-m-d format)
-     * @param int|null $sayfaSayisi Page size
-     * @param string|null $guidSepetId GUID cart ID
-     * @return array Returns ['success' => bool, 'message' => string, 'data' => array]
+     * Select cart with filters
+     * @param int $cartId Cart ID
+     * @param int $userId User ID
+     * @param string $startDate Start date
+     * @param string $endDate End date
+     * @param int|null $pageSize Page size (optional)
+     * @param string|null $guidCartId GUID cart ID (optional)
+     * @return ApiResponse
      */
     public function selectCart(
-        ?int $sepetId = null,
-        ?int $uyeId = null,
-        ?string $baslangicTarihi = null,
-        ?string $bitisTarihi = null,
-        ?int $sayfaSayisi = null,
-        ?string $guidSepetId = null
+        int $cartId,
+        int $userId,
+        string $startDate,
+        string $endDate,
+        ?int $pageSize = null,
+        ?string $guidCartId = null
     ): ApiResponse {
         $client = $this->request->soap_client($this->apiUrl);
         
         try {
-            // Check DateTime format (XML schema requires dateTime)
-            $startDate = null;
-            $endDate = null;
-            
-            if ($baslangicTarihi) {
-                $startDate = date('c', strtotime($baslangicTarihi)); // ISO 8601 format
+            // Convert dates to ISO 8601 format for SOAP
+            $startDateFormatted = date('c', strtotime($startDate));
+            $endDateFormatted = date('c', strtotime($endDate));
+
+            $params = [
+                'UyeKodu' => $this->request->key,
+                'sepetId' => $cartId,
+                'uyeId' => $userId,
+                'BaslangicTarihi' => $startDate,
+                'BitisTarihi' => $endDate
+            ];
+
+            // Add optional parameters
+            if ($sayfaSayisi !== null) {
+                $params['sayfaSayisi'] = $sayfaSayisi;
             }
-            if ($bitisTarihi) {
-                $endDate = date('c', strtotime($bitisTarihi)); // ISO 8601 format  
+            if ($guidCartId !== null) {
+                $params['guidSepetId'] = $guidCartId;
             }
 
-            $response = $client->__soapCall("SelectSepet", [
-                [
-                    'UyeKodu' => $this->request->key,
-                    'sepetId' => $sepetId,
-                    'uyeId' => $uyeId,
-                    'BaslangicTarihi' => $startDate,
-                    'BitisTarihi' => $endDate,
-                    'sayfaSayisi' => $sayfaSayisi,
-                    'guidSepetId' => $guidSepetId
-                ]
-            ]);
+            $response = $client->__soapCall("SelectSepet", [$params]);
             
             $result = $response->SelectSepetResult ?? null;
 
@@ -261,44 +259,109 @@ class CartService
         }
     }
 
+
+
     /**
      * Get web cart details using SelectWebSepet API call
+     * According to WSDL specification
      * 
      * @param string|null $dil Language code (defaults to "TR" if empty)
-     * @param string|null $paraBirimi Currency code
-     * @param int|null $sepetId Cart ID
-     * @param int|null $uyeId User ID
-     * @param int|null $sayfaSayisi Page size (WSDL required field)
+     * @param string|null $paraBirimi Currency code  
+     * @param int|null $sepetId Cart ID (optional)
+     * @param int|null $uyeId User ID (optional)
      * @return ApiResponse
      */
     public function selectWebCart(
         ?string $dil = null,
         ?string $paraBirimi = null,
         ?int $sepetId = null,
-        ?int $uyeId = null,
-        ?int $sayfaSayisi = null
+        ?int $uyeId = null
     ): ApiResponse {
+        $client = $this->request->soap_client($this->apiUrl);
+        
         try {
+            // Build SelectWebSepetRequest according to WSDL
             $requestData = [
-                'Dil' => $dil ?? '',
-                'ParaBirimi' => $paraBirimi ?? 'TL',
-                'SayfaSayisi' => $sayfaSayisi ?? 0,
+                'Dil' => $dil ?? '',  // Empty string defaults to "TR" on server side
+                'ParaBirimi' => $paraBirimi,
                 'SepetId' => $sepetId,
                 'UyeId' => $uyeId
             ];
 
-            $response = $this->request->soap_client($this->apiUrl)->__soapCall("SelectWebSepet", [
+            $response = $client->__soapCall("SelectWebSepet", [
                 [
                     'UyeKodu' => $this->request->key,
                     'request' => (object)$requestData
                 ]
             ]);
 
-            if (isset($response->SelectWebSepetResult) && isset($response->SelectWebSepetResult->Sepetler)) {
-                return ApiResponse::success($response->SelectWebSepetResult->Sepetler, 'Cart information retrieved successfully.');
+            $result = $response->SelectWebSepetResult ?? null;
+
+            if ($result && isset($result->Sepetler)) {
+                $sepetler = $result->Sepetler->WebSepet ?? [];
+                if (is_object($sepetler)) {
+                    $sepetler = [$sepetler];
+                }
+                
+                $carts = [];
+                foreach ($sepetler as $sepet) {
+                    $cartData = [
+                        'ID' => $sepet->ID ?? null,
+                        'UyeID' => $sepet->UyeID ?? null,
+                        'UyeAdi' => $sepet->UyeAdi ?? null,
+                        'UyeMail' => $sepet->UyeMail ?? null,
+                        'SepetTarihi' => $sepet->SepetTarihi ?? null,
+                        'Urunler' => []
+                    ];
+
+                    // Process products
+                    if (isset($sepet->Urunler->WebSepetUrun)) {
+                        $webSepetUrun = $sepet->Urunler->WebSepetUrun;
+                        
+                        // Handle single product or array of products
+                        if (is_object($webSepetUrun) && !is_array($webSepetUrun)) {
+                            $webSepetUrun = [$webSepetUrun];
+                        }
+                        
+                        foreach ($webSepetUrun as $urun) {
+                            $cartData['Urunler'][] = [
+                                'ID' => $urun->ID ?? null,
+                                'SepetID' => $urun->SepetID ?? null,
+                                'UrunID' => $urun->UrunID ?? null,
+                                'UrunKartiID' => $urun->UrunKartiID ?? null,
+                                'UrunAdi' => $urun->UrunAdi ?? '',
+                                'StokKodu' => $urun->StokKodu ?? '',
+                                'SpotResim' => $urun->SpotResim ?? '',
+                                'Adet' => $urun->Adet ?? 0.0,
+                                'Desi' => $urun->Desi ?? 0.0,
+                                'Fiyati' => $urun->Fiyati ?? 0.0,
+                                'UrunSepetFiyati' => $urun->UrunSepetFiyati ?? 0.0,
+                                'UrunSepetFiyatiKDV' => $urun->UrunSepetFiyatiKDV ?? 0.0,
+                                'KDVOrani' => $urun->KDVOrani ?? 0.0,
+                                'KDVTutari' => $urun->KDVTutari ?? 0.0,
+                                'KargoUcreti' => $urun->KargoUcreti ?? 0.0,
+                                'UcretsizKargo' => $urun->UcretsizKargo ?? false,
+                                'ParaBirimi' => $urun->ParaBirimi ?? '',
+                                'ParaBirimiDilKodu' => $urun->ParaBirimiDilKodu ?? ''
+                            ];
+                        }
+                    }
+                    
+                    $carts[] = (object)$cartData;
+                }
+
+                return ApiResponse::success([
+                    'carts' => $carts,
+                    'hasNext' => $result->Next ?? false,
+                    'totalCarts' => count($carts)
+                ], 'Web cart information retrieved successfully.');
             }
 
-            return ApiResponse::success([], 'Cart not found.');
+            return ApiResponse::success([
+                'carts' => [],
+                'hasNext' => false,
+                'totalCarts' => 0
+            ], 'No web carts found.');
 
         } catch (SoapFault $e) {
             return ApiResponse::error('Error retrieving web cart information: ' . $e->getMessage());
@@ -352,6 +415,124 @@ class CartService
         } catch (SoapFault $e) {
             return ApiResponse::error('Error updating cart: ' . $e->getMessage());
         }
-        }
-        
     }
+
+    /**
+     * Get cart information using SelectSepet API call
+     * According to WSDL specification
+     * 
+     * @param int $sepetId Cart ID (required)
+     * @param int $uyeId User ID (required) 
+     * @param string $baslangicTarihi Start date (required, format: Y-m-d H:i:s)
+     * @param string $bitisTarihi End date (required, format: Y-m-d H:i:s)
+     * @param int|null $sayfaSayisi Page size (optional)
+     * @param string|null $guidSepetId GUID cart ID (optional)
+     * @return ApiResponse
+     */
+    public function selectSepet(
+        int $sepetId,
+        int $uyeId,
+        string $baslangicTarihi,
+        string $bitisTarihi,
+        ?int $sayfaSayisi = null,
+        ?string $guidSepetId = null
+    ): ApiResponse {
+        $client = $this->request->soap_client($this->apiUrl);
+        
+        try {
+            // Convert dates to ISO 8601 format for SOAP
+            $startDate = date('c', strtotime($baslangicTarihi));
+            $endDate = date('c', strtotime($bitisTarihi));
+
+            $params = [
+                'UyeKodu' => $this->request->key,
+                'sepetId' => $sepetId,
+                'uyeId' => $uyeId,
+                'BaslangicTarihi' => $startDate,
+                'BitisTarihi' => $endDate
+            ];
+
+            // Add optional parameters
+            if ($sayfaSayisi !== null) {
+                $params['sayfaSayisi'] = $sayfaSayisi;
+            }
+            if ($guidSepetId !== null) {
+                $params['guidSepetId'] = $guidSepetId;
+            }
+
+            $response = $client->__soapCall("SelectSepet", [$params]);
+            
+            $result = $response->SelectSepetResult ?? null;
+
+            if ($result && isset($result->Sepetler)) {
+                $sepetler = $result->Sepetler->WebSepet ?? [];
+                if (is_object($sepetler)) {
+                    $sepetler = [$sepetler];
+                }
+                
+                $carts = [];
+                foreach ($sepetler as $sepet) {
+                    $cartData = [
+                        'ID' => $sepet->ID ?? null,
+                        'GuidSepetID' => $sepet->GuidSepetID ?? null,
+                        'UyeID' => $sepet->UyeID ?? null,
+                        'UyeAdi' => $sepet->UyeAdi ?? null,
+                        'UyeMail' => $sepet->UyeMail ?? null,
+                        'SepetTarihi' => $sepet->SepetTarihi ?? null,
+                        'Urunler' => []
+                    ];
+
+                    // Process products
+                    if (isset($sepet->Urunler->WebSepetUrun)) {
+                        $webSepetUrun = $sepet->Urunler->WebSepetUrun;
+                        
+                        // Handle single product or array of products
+                        if (is_object($webSepetUrun) && !is_array($webSepetUrun)) {
+                            $webSepetUrun = [$webSepetUrun];
+                        }
+                        
+                        foreach ($webSepetUrun as $urun) {
+                            $cartData['Urunler'][] = [
+                                'ID' => $urun->ID ?? null,
+                                'SepetID' => $urun->SepetID ?? null,
+                                'UrunID' => $urun->UrunID ?? null,
+                                'UrunKartiID' => $urun->UrunKartiID ?? null,
+                                'UrunAdi' => $urun->UrunAdi ?? '',
+                                'StokKodu' => $urun->StokKodu ?? '',
+                                'SpotResim' => $urun->SpotResim ?? '',
+                                'Adet' => $urun->Adet ?? 0.0,
+                                'UrunSepetFiyati' => $urun->UrunSepetFiyati ?? 0.0,
+                                'UrunSepetFiyatiKDV' => $urun->UrunSepetFiyatiKDV ?? 0.0,
+                                'KDVOrani' => $urun->KDVOrani ?? 0.0,
+                                'KDVTutari' => $urun->KDVTutari ?? 0.0,
+                                'KargoUcreti' => $urun->KargoUcreti ?? 0.0,
+                                'UcretsizKargo' => $urun->UcretsizKargo ?? false,
+                                'ParaBirimi' => $urun->ParaBirimi ?? '',
+                                'ParaBirimiDilKodu' => $urun->ParaBirimiDilKodu ?? '',
+                                'GuidSepetID' => $urun->GuidSepetID ?? null,
+                                'GuidSepetUrunID' => $urun->GuidSepetUrunID ?? null
+                            ];
+                        }
+                    }
+                    
+                    $carts[] = (object)$cartData;
+                }
+
+                return ApiResponse::success([
+                    'carts' => $carts,
+                    'hasNext' => $result->Next ?? false,
+                    'totalCarts' => count($carts)
+                ], 'Carts retrieved successfully.');
+            }
+
+            return ApiResponse::success([
+                'carts' => [],
+                'hasNext' => false,
+                'totalCarts' => 0
+            ], 'No carts found.');
+
+        } catch (SoapFault $e) {
+            return ApiResponse::error('Error retrieving carts: ' . $e->getMessage());
+        }
+    }
+}
